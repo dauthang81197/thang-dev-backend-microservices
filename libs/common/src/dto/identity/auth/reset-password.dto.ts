@@ -6,7 +6,7 @@ import {
   Matches,
   MaxLength,
 } from 'class-validator';
-import { IsNotBlank } from '../../../decorators';
+import { IsNotBlank } from '@app/common/decorators';
 
 export class ResetPasswordDto {
   @ApiProperty()

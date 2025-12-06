@@ -1,61 +1,42 @@
-import { Entity, Column, OneToMany } from "typeorm";
-import { BaseEntity } from "../../../shareds/entities/base.entity";
-import {UserSessionEntity} from "./user-session.entity";
-import {OAuthAccountEntity} from "./oauth-account.entity";
-import {ProjectEntity, TaskEntity} from "../project";
-import {NotificationEntity} from "../notification";
-import {FileEntity} from "../file";
-import {AutomationRuleEntity} from "../automation";
-import {AnalyticsSnapshotEntity} from "../analytics";
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { BaseEntity } from '../../../shareds/entities/base.entity';
+import { OrganizationEntity } from './organization.entity';
+import { UserRoleEntity } from './user-role.entity';
 
-
-@Entity({ name: "users" })
+@Entity({ name: 'users' })
 export class UserEntity extends BaseEntity {
-    @Column({ unique: true, length: 190 })
-    email!: string;
+  @Column({ unique: true, length: 190 })
+  email!: string;
 
-    @Column({ length: 100, nullable: true })
-    name?: string;
+  @Column({ nullable: true, name: 'first_name' })
+  firstName: string;
 
-    @Column({ name: "password_hash", length: 255, nullable: true })
-    passwordHash?: string;
+  @Column({ nullable: true, name: 'middle_name' })
+  middleName: string;
 
-    @Column({ length: 20, default: "local" })
-    provider!: string;
+  @Column({ nullable: true, name: 'last_name' })
+  lastName: string;
 
-    @Column({ name: "provider_id", length: 100, nullable: true })
-    providerId?: string;
+  @Column({ nullable: true, name: 'full_name' })
+  fullName: string;
 
-    @Column({ name: "avatar_url", length: 255, nullable: true })
-    avatarUrl?: string;
+  @Column({ nullable: true, name: 'phone_number' })
+  phoneNumber: string;
 
-    @Column({ length: 20, default: "member" })
-    role!: string;
+  @Column({ name: 'password_hash', length: 255, nullable: true })
+  passwordHash?: string;
 
-    @Column({ name: "is_active", default: true })
-    isActive!: boolean;
+  @Column({ name: 'organization_id' })
+  organizationId: number;
 
-    @OneToMany(() => UserSessionEntity, (s) => s.user)
-    sessions!: UserSessionEntity[];
+  @ManyToOne(() => OrganizationEntity, (organization) => organization.users, {
+    nullable: true,
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'organization_id' })
+  organization: OrganizationEntity;
 
-    @OneToMany(() => OAuthAccountEntity, (o) => o.user)
-    oauthAccounts!: OAuthAccountEntity[];
-
-    @OneToMany(() => ProjectEntity, (p) => p.owner)
-    projects!: ProjectEntity[];
-
-    @OneToMany(() => TaskEntity, (t) => t.assignee)
-    assignedTasks!: TaskEntity[];
-
-    @OneToMany(() => NotificationEntity, (n) => n.user)
-    notifications!: NotificationEntity[];
-
-    @OneToMany(() => FileEntity, (f) => f.owner)
-    files!: FileEntity[];
-
-    @OneToMany(() => AutomationRuleEntity, (r) => r.creator)
-    automationRules!: AutomationRuleEntity[];
-
-    @OneToMany(() => AnalyticsSnapshotEntity, (a) => a.user)
-    analyticsSnapshots!: AnalyticsSnapshotEntity[];
+  @OneToMany(() => UserRoleEntity, (ur) => ur.user)
+  userRoles: UserRoleEntity[];
 }
