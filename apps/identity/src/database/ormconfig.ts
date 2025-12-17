@@ -20,7 +20,11 @@ const connectionOptions: TypeOrmModuleOptions &
   connectTimeoutMS: 0,
   logNotifications: true,
   synchronize: false,
-  entities: [join(__dirname, '..', 'modules/**/*.entity.{ts,js}')],
+  entities: [
+    join(__dirname, '../shareds/entities/*.entity.{ts,js}'),
+    join(__dirname, '../modules/**/*.entity.{ts,js}'),
+  ],
+
   poolErrorHandler: (err) => {
     console.log(err);
   },

@@ -15,7 +15,7 @@ import { join } from 'path';
         join(__dirname, '../../.env'), // chạy khi đã build (dist)
       ],
     }),
-    BasePlatformModule,
+
     TypeOrmModule.forRootAsync({
       useFactory() {
         return connectionOptions;
@@ -28,6 +28,7 @@ import { join } from 'path';
         return addTransactionalDataSource(new DataSource(options));
       },
     }),
+    BasePlatformModule,
   ],
   controllers: [],
   providers: [],

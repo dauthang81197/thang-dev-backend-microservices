@@ -4,6 +4,6 @@ export const ENVIRONMENT = {
     port: 5432,
     pass: 'Admin@123',
     dbUser: 'dauthang',
-    dbName: 'taskflow_dev',
+    dbName: 'identity',
   },
 };

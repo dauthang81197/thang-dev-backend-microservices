@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthService } from './auth.service';
 import { AuthController } from './controllers/auth.controller';
 import { UserEntity } from '../../shareds/entities';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UserEntity } from '../../shareds/entities';
       signOptions: { expiresIn: '1h' },
     }),
     HttpModule,
+    UserModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, ConfigService],
