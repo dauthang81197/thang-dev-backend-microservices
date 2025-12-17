@@ -21,7 +21,7 @@ const connectionOptions: TypeOrmModuleOptions &
   logNotifications: true,
   synchronize: false,
   entities: [
-    join(__dirname, '../shareds/entities/*.entity.{ts,js}'),
+    join(__dirname, '../shareds/entities/**/*.entity.{ts,js}'),
     join(__dirname, '../modules/**/*.entity.{ts,js}'),
   ],
 

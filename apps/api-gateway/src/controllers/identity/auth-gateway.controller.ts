@@ -9,23 +9,27 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import {
   ApiBadRequestResponse,
-  ApiBearerAuth,
   ApiResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { MessagePatternEnum } from '@app/common';
-import { RegisterDto } from '@app/common/dto';
+import {
+  RegisterDto,
+  RegisterOrganizationDto,
+  LoginDto,
+  LoginResponseDto,
+} from '@app/common/dto';
 
 @Controller('auth')
 @ApiTags('auth')
-@ApiBearerAuth()
 export class AuthGatewayController {
   constructor(@Inject('IDENTITY_SERVICE') private usersClient: ClientProxy) {}
 
   @Post('/register')
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.CREATED)
   @ApiResponse({
-    status: HttpStatus.OK,
+    status: HttpStatus.CREATED,
     description: 'Register user successfully',
   })
   @ApiBadRequestResponse({
@@ -35,6 +39,41 @@ export class AuthGatewayController {
     return this.usersClient.send(
       MessagePatternEnum.IDENTITY_AUTH_REGISTER,
       registerDto,
+    );
+  }
+
+  @Post('/register/organization')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Register organization successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Organization code already exists',
+  })
+  registerOrganization(
+    @Body() registerOrganizationDto: RegisterOrganizationDto,
+  ) {
+    return this.usersClient.send(
+      MessagePatternEnum.IDENTITY_AUTH_REGISTER_ORGANIZATION,
+      registerOrganizationDto,
+    );
+  }
+
+  @Post('/login')
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Login successfully',
+    type: LoginResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid email or password',
+  })
+  login(@Body() loginDto: LoginDto) {
+    return this.usersClient.send(
+      MessagePatternEnum.IDENTITY_AUTH_LOGIN,
+      loginDto,
     );
   }
 }

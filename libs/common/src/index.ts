@@ -5,3 +5,5 @@ export * from './decorators';
 export * from './exceptions';
 export * from './constants';
 export * from './interfaces';
+export * from './guards';
+export * from './dto';
