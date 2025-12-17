@@ -20,6 +20,9 @@ export class UserEntity extends BaseEntity {
   @Column({ nullable: true, name: 'full_name' })
   fullName: string;
 
+  @Column({ nullable: true, name: 'username' })
+  username: string;
+
   @Column({ nullable: true, name: 'phone_number' })
   phoneNumber: string;
 

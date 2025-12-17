@@ -5,6 +5,7 @@ import {
   initializeTransactionalContext,
   StorageDriver,
 } from 'typeorm-transactional';
+import { connectionOptions } from './database/ormconfig';
 
 async function bootstrap() {
   initializeTransactionalContext({ storageDriver: StorageDriver.AUTO });
@@ -18,7 +19,7 @@ async function bootstrap() {
       },
     },
   );
-
+  console.log('Loaded entities:', connectionOptions.entities);
   await app.listen();
   console.log('ENV DB HOST:', process.env.PORT);
   console.log('Identity Microservice is running...');
