@@ -6,4 +6,7 @@ export const ENVIRONMENT = {
     dbUser: 'dauthang',
     dbName: 'identity',
   },
+  auth: {
+    JWT_SECRET: 'supersecret',
+  },
 };

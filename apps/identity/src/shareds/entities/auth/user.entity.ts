@@ -30,7 +30,7 @@ export class UserEntity extends BaseEntity {
   passwordHash?: string;
 
   @Column({ name: 'organization_id' })
-  organizationId: number;
+  organizationId: string;
 
   @ManyToOne(() => OrganizationEntity, (organization) => organization.users, {
     nullable: true,

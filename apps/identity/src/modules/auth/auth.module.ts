@@ -8,23 +8,31 @@ import { AuthService } from './auth.service';
 import { AuthController } from './controllers/auth.controller';
 import { UserEntity } from '../../shareds/entities';
 import { UserModule } from '../user/user.module';
+import { OrganizationModule } from '../organization/organization.module';
+import { ENVIRONMENT } from '../../env/environment';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserEntity]),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1h' },
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const secret = ENVIRONMENT.auth.JWT_SECRET;
+        if (!secret) {
+          throw new Error('JWT_SECRET is not defined in environment variables');
+        }
+        return {
+          secret,
+          signOptions: { expiresIn: '1h' },
+        };
+      },
     }),
     HttpModule,
     UserModule,
+    OrganizationModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, ConfigService],
-  exports: [],
+  exports: [AuthService],
 })
-export class AuthModule {
-  constructor() {
-    console.log(process.env.JWT_SECRET, 'dslkhfs');
-  }
-}
+export class AuthModule {}
