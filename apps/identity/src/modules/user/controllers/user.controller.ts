@@ -12,4 +12,3 @@ export class UserController {
     return await this.userService.getProfile(data.userId);
   }
 }
-

@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { RoleRepository } from './repositories/role.repository';
 import { RolePermissionRepository } from './repositories/role-permission.repository';
-import { RoleEntity, RolePermissionEntity, PermissionEntity } from '../../shareds/entities';
+import { RoleEntity, PermissionEntity } from '../../shareds/entities';
 import { CreateRoleDto, AssignPermissionDto } from '@app/common/dto';
 
 @Injectable()
@@ -82,14 +82,13 @@ export class RoleService {
     await this.findOne(roleId);
 
     // Check if permission already assigned
-    const existingRolePermission =
-      await this.rolePermissionRepository.findOne({
-        where: {
-          role: { id: roleId },
-          permission: { id: permissionId },
-        },
-        relations: ['role', 'permission'],
-      });
+    const existingRolePermission = await this.rolePermissionRepository.findOne({
+      where: {
+        role: { id: roleId },
+        permission: { id: permissionId },
+      },
+      relations: ['role', 'permission'],
+    });
 
     if (existingRolePermission) {
       throw new BadRequestException(
@@ -116,9 +115,7 @@ export class RoleService {
     });
 
     if (!rolePermission) {
-      throw new NotFoundException(
-        'Permission is not assigned to this role',
-      );
+      throw new NotFoundException('Permission is not assigned to this role');
     }
 
     await this.rolePermissionRepository.remove(rolePermission);

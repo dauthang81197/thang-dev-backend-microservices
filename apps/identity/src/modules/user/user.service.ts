@@ -43,6 +43,7 @@ export class UserService {
 
   async getProfile(userId: string) {
     const user = await this.findById(userId);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHash, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }

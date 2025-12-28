@@ -1,7 +1,11 @@
 import { AuthService } from '../auth.service';
 import { MessagePattern } from '@nestjs/microservices';
 import { MessagePatternEnum } from '@app/common';
-import { RegisterDto, RegisterOrganizationDto, LoginDto } from '@app/common/dto';
+import {
+  RegisterDto,
+  RegisterOrganizationDto,
+  LoginDto,
+} from '@app/common/dto';
 import { Controller } from '@nestjs/common';
 
 @Controller()

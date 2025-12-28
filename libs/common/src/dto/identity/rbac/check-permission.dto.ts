@@ -18,4 +18,3 @@ export class CheckPermissionDto {
   @IsString()
   permissionName: string;
 }
-

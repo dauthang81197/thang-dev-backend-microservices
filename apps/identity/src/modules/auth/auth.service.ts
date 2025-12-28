@@ -1,7 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import {
   BadRequestException,
-  HttpStatus,
   Injectable,
   Logger,
   UnauthorizedException,
@@ -108,6 +107,7 @@ export class AuthService {
       });
 
       // Remove password hash from response
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { passwordHash, ...userWithoutPassword } = user;
 
       return {
