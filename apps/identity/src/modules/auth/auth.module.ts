@@ -16,7 +16,7 @@ import { ENVIRONMENT } from '../../env/environment';
     TypeOrmModule.forFeature([UserEntity]),
     JwtModule.registerAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
+      useFactory: () => {
         const secret = ENVIRONMENT.auth.JWT_SECRET;
         if (!secret) {
           throw new Error('JWT_SECRET is not defined in environment variables');

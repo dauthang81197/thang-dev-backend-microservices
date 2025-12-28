@@ -18,4 +18,3 @@ export class AssignRoleDto {
   @IsUUID()
   roleId: string;
 }
-

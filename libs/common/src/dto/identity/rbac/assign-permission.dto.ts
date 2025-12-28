@@ -18,4 +18,3 @@ export class AssignPermissionDto {
   @IsUUID()
   permissionId: string;
 }
-

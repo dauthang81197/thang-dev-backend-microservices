@@ -30,8 +30,8 @@ export class RBACController {
 
   @MessagePattern(MessagePatternEnum.IDENTITY_RBAC_CHECK_PERMISSION)
   async checkPermission(checkPermissionDto: CheckPermissionDto) {
-    const hasPermission = await this.rbacService.checkPermission(checkPermissionDto);
+    const hasPermission =
+      await this.rbacService.checkPermission(checkPermissionDto);
     return { hasPermission };
   }
 }
-

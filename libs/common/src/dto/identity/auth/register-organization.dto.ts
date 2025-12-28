@@ -64,4 +64,3 @@ export class RegisterOrganizationDto {
   @IsString()
   website?: string;
 }
-

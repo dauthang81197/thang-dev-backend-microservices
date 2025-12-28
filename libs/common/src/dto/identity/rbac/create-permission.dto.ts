@@ -19,4 +19,3 @@ export class CreatePermissionDto {
   @IsString()
   description?: string;
 }
-

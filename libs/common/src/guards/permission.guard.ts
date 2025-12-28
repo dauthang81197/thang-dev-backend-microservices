@@ -11,7 +11,7 @@ import { PERMISSIONS_KEY } from '../decorators/permission.decorator';
 export class PermissionGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext): boolean {
     const requiredPermissions = this.reflector.getAllAndOverride<string[]>(
       PERMISSIONS_KEY,
       [context.getHandler(), context.getClass()],
@@ -45,4 +45,3 @@ export class PermissionGuard implements CanActivate {
     return true;
   }
 }
-

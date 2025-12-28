@@ -4,7 +4,6 @@ import {
   Inject,
   HttpStatus,
   HttpCode,
-  UseGuards,
   Request,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';

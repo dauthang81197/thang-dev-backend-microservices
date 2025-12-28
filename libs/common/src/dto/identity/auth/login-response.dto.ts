@@ -8,4 +8,3 @@ export class LoginResponseDto {
   @ApiProperty()
   user: UserDto;
 }
-

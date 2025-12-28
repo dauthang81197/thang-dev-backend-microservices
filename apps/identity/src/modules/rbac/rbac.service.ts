@@ -4,7 +4,7 @@ import { UserRoleRepository } from '../user/repositories/user-role.repository';
 import { RoleRepository } from '../role/repositories/role.repository';
 import { PermissionRepository } from '../permission/permission.repository';
 import { RolePermissionRepository } from '../role/repositories/role-permission.repository';
-import { UserEntity, UserRoleEntity, RoleEntity } from '../../shareds/entities';
+import { UserEntity, RoleEntity } from '../../shareds/entities';
 import { AssignRoleDto, CheckPermissionDto } from '@app/common/dto';
 
 @Injectable()
@@ -48,7 +48,10 @@ export class RBACService {
     });
 
     if (existingUserRole) {
-      return { message: 'Role is already assigned to this user', userRole: existingUserRole };
+      return {
+        message: 'Role is already assigned to this user',
+        userRole: existingUserRole,
+      };
     }
 
     // Create new user-role relationship
@@ -89,11 +92,15 @@ export class RBACService {
   async getUserPermissions(userId: string) {
     const userRoles = await this.userRoleRepository.find({
       where: { user: { id: userId } },
-      relations: ['role', 'role.rolePermissions', 'role.rolePermissions.permission'],
+      relations: [
+        'role',
+        'role.rolePermissions',
+        'role.rolePermissions.permission',
+      ],
     });
 
     const permissionsSet = new Set<string>();
-    
+
     for (const userRole of userRoles) {
       if (userRole.role && userRole.role.rolePermissions) {
         for (const rp of userRole.role.rolePermissions) {
@@ -107,7 +114,9 @@ export class RBACService {
     return Array.from(permissionsSet);
   }
 
-  async checkPermission(checkPermissionDto: CheckPermissionDto): Promise<boolean> {
+  async checkPermission(
+    checkPermissionDto: CheckPermissionDto,
+  ): Promise<boolean> {
     const { userId, permissionName } = checkPermissionDto;
 
     // Get user permissions
@@ -117,14 +126,23 @@ export class RBACService {
     return userPermissions.includes(permissionName);
   }
 
-  async hasAnyPermission(userId: string, permissionNames: string[]): Promise<boolean> {
+  async hasAnyPermission(
+    userId: string,
+    permissionNames: string[],
+  ): Promise<boolean> {
     const userPermissions = await this.getUserPermissions(userId);
-    return permissionNames.some((permission) => userPermissions.includes(permission));
+    return permissionNames.some((permission) =>
+      userPermissions.includes(permission),
+    );
   }
 
-  async hasAllPermissions(userId: string, permissionNames: string[]): Promise<boolean> {
+  async hasAllPermissions(
+    userId: string,
+    permissionNames: string[],
+  ): Promise<boolean> {
     const userPermissions = await this.getUserPermissions(userId);
-    return permissionNames.every((permission) => userPermissions.includes(permission));
+    return permissionNames.every((permission) =>
+      userPermissions.includes(permission),
+    );
   }
 }
-

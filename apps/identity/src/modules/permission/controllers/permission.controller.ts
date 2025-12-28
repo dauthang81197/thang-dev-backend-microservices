@@ -33,4 +33,3 @@ export class PermissionController {
     return await this.permissionService.remove(data.id);
   }
 }
-

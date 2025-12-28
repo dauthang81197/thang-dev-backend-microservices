@@ -9,9 +9,7 @@ import { CreatePermissionDto } from '@app/common/dto';
 
 @Injectable()
 export class PermissionService {
-  constructor(
-    private readonly permissionRepository: PermissionRepository,
-  ) {}
+  constructor(private readonly permissionRepository: PermissionRepository) {}
 
   async create(createPermissionDto: CreatePermissionDto) {
     const existingPermission = await this.permissionRepository.findOne({

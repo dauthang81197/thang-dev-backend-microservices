@@ -12,4 +12,3 @@ import { PermissionModule } from '../permission/permission.module';
   exports: [RBACService],
 })
 export class RBACModule {}
-

@@ -1,10 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { MessagePatternEnum } from '@app/common';
-import {
-  CreateRoleDto,
-  AssignPermissionDto,
-} from '@app/common/dto';
+import { CreateRoleDto, AssignPermissionDto } from '@app/common/dto';
 import { RoleService } from '../role.service';
 
 @Controller()
@@ -43,7 +40,10 @@ export class RoleController {
 
   @MessagePattern(MessagePatternEnum.IDENTITY_RBAC_REMOVE_PERMISSION)
   async removePermission(data: { roleId: string; permissionId: string }) {
-    return await this.roleService.removePermission(data.roleId, data.permissionId);
+    return await this.roleService.removePermission(
+      data.roleId,
+      data.permissionId,
+    );
   }
 
   @MessagePattern(MessagePatternEnum.IDENTITY_RBAC_GET_ROLE_PERMISSIONS)
@@ -51,4 +51,3 @@ export class RoleController {
     return await this.roleService.getRolePermissions(data.roleId);
   }
 }
-
