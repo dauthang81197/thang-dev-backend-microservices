@@ -4,7 +4,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(ApiGatewayModule);
-
+  app.enableCors();
+  app.setGlobalPrefix('api');
   const config = new DocumentBuilder()
     .setTitle('Microservices API Gateway')
     .setDescription('API Gateway for all services')

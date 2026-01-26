@@ -10,7 +10,7 @@ import { Controller } from '@nestjs/common';
 
 @Controller()
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @MessagePattern(MessagePatternEnum.IDENTITY_AUTH_REGISTER)
   async register(registerDto: RegisterDto) {
@@ -25,5 +25,10 @@ export class AuthController {
   @MessagePattern(MessagePatternEnum.IDENTITY_AUTH_LOGIN)
   async login(loginDto: LoginDto) {
     return await this.authService.login(loginDto);
+  }
+
+  @MessagePattern(MessagePatternEnum.IDENTITY_AUTH_GET_ME)
+  async getCurrentUser(data: { userId: string }) {
+    return await this.authService.getCurrentUser(data.userId);
   }
 }
