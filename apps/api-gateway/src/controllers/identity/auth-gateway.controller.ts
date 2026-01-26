@@ -1,14 +1,18 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   Inject,
   HttpStatus,
   HttpCode,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
@@ -19,12 +23,14 @@ import {
   RegisterOrganizationDto,
   LoginDto,
   LoginResponseDto,
+  UserDto,
 } from '@app/common/dto';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 
 @Controller('auth')
 @ApiTags('auth')
 export class AuthGatewayController {
-  constructor(@Inject('IDENTITY_SERVICE') private usersClient: ClientProxy) {}
+  constructor(@Inject('IDENTITY_SERVICE') private usersClient: ClientProxy) { }
 
   @Post('/register')
   @HttpCode(HttpStatus.CREATED)
@@ -75,5 +81,29 @@ export class AuthGatewayController {
       MessagePatternEnum.IDENTITY_AUTH_LOGIN,
       loginDto,
     );
+  }
+
+  @Get('/me')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Get current user successfully',
+    type: UserDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized - Invalid or expired token',
+  })
+  getCurrentUser(@Request() req: any) {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      throw new Error('User ID not found in request');
+    }
+
+    return this.usersClient.send(MessagePatternEnum.IDENTITY_AUTH_GET_ME, {
+      userId,
+    });
   }
 }

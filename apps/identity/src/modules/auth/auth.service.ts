@@ -25,7 +25,7 @@ export class AuthService {
     private userService: UserService,
     private organizationService: OrganizationService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   private readonly logger = new Logger(AuthService.name);
 
@@ -120,6 +120,19 @@ export class AuthService {
         throw err;
       }
       throw new BadRequestException('Login failed');
+    }
+  }
+
+  async getCurrentUser(userId: string) {
+    this.logger.log('Function getCurrentUser start !!!');
+    try {
+      // Get user profile using the existing userService method
+      const user = await this.userService.getProfile(userId);
+
+      return user;
+    } catch (err) {
+      this.logger.error(err);
+      throw new UnauthorizedException('Invalid or expired token');
     }
   }
 }
