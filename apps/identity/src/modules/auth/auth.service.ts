@@ -25,7 +25,7 @@ export class AuthService {
     private userService: UserService,
     private organizationService: OrganizationService,
     private jwtService: JwtService,
-  ) { }
+  ) {}
 
   private readonly logger = new Logger(AuthService.name);
 
@@ -34,15 +34,11 @@ export class AuthService {
     this.logger.log('Function register start !!!');
     const { email, username, password, organizationId } = registerDto;
     try {
-      // Hash password
-      const saltRounds = 10;
-      const passwordHash = await bcrypt.hash(password, saltRounds);
-
       // save user
       await this.userService.saveUser({
         email,
         username,
-        passwordHash,
+        passwordHash: password,
         organizationId,
       });
     } catch (err) {
@@ -84,13 +80,19 @@ export class AuthService {
       if (!user) {
         throw new UnauthorizedException('Invalid email or password');
       }
+      console.log({
+        inputPassword: password,
+        passwordHash: user.passwordHash,
+        hashLength: user.passwordHash?.length,
+      });
 
+      console.log(JSON.stringify(password), password.length);
       // Verify password
       const isPasswordValid = await bcrypt.compare(
         password,
         user.passwordHash || '',
       );
-
+      console.log('User found:', isPasswordValid);
       if (!isPasswordValid) {
         throw new UnauthorizedException('Invalid email or password');
       }

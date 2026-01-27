@@ -4,7 +4,7 @@ export const ENVIRONMENT = {
     port: 5432,
     pass: 'Admin@123',
     dbUser: 'postgres',
-    dbName: 'identity',
+    dbName: 'course',
   },
   auth: {
     JWT_SECRET: 'supersecret',
@@ -18,7 +18,7 @@ export const ENVIRONMENT_DEV = {
     port: 5432,
     pass: 'Admin@123',
     dbUser: 'postgres',
-    dbName: 'identity',
+    dbName: 'course',
   },
   redis: { host: '192.168.50.22', port: 6379 },
 };

@@ -1,0 +1,114 @@
+/**
+ * Course API Test Examples
+ * Use with REST Client extension in VS Code or any HTTP client
+ */
+
+### Variables
+@baseUrl = http://localhost:3000
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+@courseId = 123e4567-e89b-12d3-a456-426614174000
+
+### 1. Get All Courses (No Auth Required)
+GET {{baseUrl}}/courses
+Content-Type: application/json
+
+### 2. Get Courses with Filters
+GET {{baseUrl}}/courses?category=programming&level=beginner&page=1&limit=10
+Content-Type: application/json
+
+### 3. Search Courses
+GET {{baseUrl}}/courses?search=javascript
+Content-Type: application/json
+
+### 4. Get Course Details
+GET {{baseUrl}}/courses/{{courseId}}
+Content-Type: application/json
+
+### 5. Get Enrolled Courses (Auth Required)
+GET {{baseUrl}}/courses/enrolled
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 6. Enroll in Course (Auth Required)
+POST {{baseUrl}}/courses/{{courseId}}/enroll
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 7. Get Course Progress (Auth Required)
+GET {{baseUrl}}/courses/{{courseId}}/progress
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+### 8. Get Courses - Pagination Test
+GET {{baseUrl}}/courses?page=2&limit=5
+Content-Type: application/json
+
+### 9. Get Courses - Multiple Filters
+GET {{baseUrl}}/courses?category=programming&level=intermediate&search=react&page=1&limit=20
+Content-Type: application/json
+
+### Expected Responses
+
+# Response for GET /courses
+# HTTP/1.1 200 OK
+# {
+#   "courses": [
+#     {
+#       "id": "uuid",
+#       "title": "Course Title",
+#       "description": "Course Description",
+#       "category": "programming",
+#       "level": "beginner",
+#       "price": 29.99,
+#       "thumbnail": "url",
+#       "instructorName": "John Doe",
+#       "enrollmentCount": 1500,
+#       "rating": 4.8,
+#       "totalLessons": 45,
+#       "totalDuration": 14400
+#     }
+#   ],
+#   "total": 100,
+#   "page": 1,
+#   "limit": 10
+# }
+
+# Response for POST /courses/:id/enroll
+# HTTP/1.1 201 Created
+# {
+#   "success": true,
+#   "message": "Successfully enrolled in the course",
+#   "enrollmentId": "uuid"
+# }
+
+# Response for GET /courses/:id/progress
+# HTTP/1.1 200 OK
+# {
+#   "totalLessons": 45,
+#   "completedLessons": 12,
+#   "progressPercent": 26.67
+# }
+
+# Error Response (401 Unauthorized)
+# HTTP/1.1 401 Unauthorized
+# {
+#   "statusCode": 401,
+#   "message": "Authentication required",
+#   "error": "Unauthorized"
+# }
+
+# Error Response (404 Not Found)
+# HTTP/1.1 404 Not Found
+# {
+#   "statusCode": 404,
+#   "message": "Course with ID {id} not found",
+#   "error": "Not Found"
+# }
+
+# Error Response (409 Conflict)
+# HTTP/1.1 409 Conflict
+# {
+#   "statusCode": 409,
+#   "message": "You are already enrolled in this course",
+#   "error": "Conflict"
+# }

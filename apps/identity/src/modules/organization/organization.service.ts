@@ -12,6 +12,7 @@ export class OrganizationService {
     const organizationFind = await this.organizationRepository.findOne({
       where: [{ code: organization.code }],
     });
+
     if (organizationFind) {
       throw new BadRequestException('Organization code already exists');
     }

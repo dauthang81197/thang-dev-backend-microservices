@@ -7,7 +7,9 @@ import { UserGatewayController } from './controllers/identity/user-gateway.contr
 import { RoleGatewayController } from './controllers/identity/role-gateway.controller';
 import { PermissionGatewayController } from './controllers/identity/permission-gateway.controller';
 import { RBACGatewayController } from './controllers/identity/rbac-gateway.controller';
+import { CourseGatewayController } from './controllers/course/course-gateway.controller';
 import { JwtStrategy } from './guards/jwt.strategy';
+import { ENVIRONMENT } from '../env/environment';
 
 export const CONTROLLER_IDENTITY = [
   AuthGatewayController,
@@ -16,6 +18,8 @@ export const CONTROLLER_IDENTITY = [
   PermissionGatewayController,
   RBACGatewayController,
 ];
+
+export const CONTROLLER_COURSE = [CourseGatewayController];
 
 @Module({
   imports: [
@@ -29,13 +33,21 @@ export const CONTROLLER_IDENTITY = [
         name: 'IDENTITY_SERVICE',
         transport: Transport.REDIS,
         options: {
-          host: '192.168.50.22',
-          port: 6379,
+          host: ENVIRONMENT.redis.host,
+          port: ENVIRONMENT.redis.port,
+        },
+      },
+      {
+        name: 'COURSE_SERVICE',
+        transport: Transport.REDIS,
+        options: {
+          host: ENVIRONMENT.redis.host,
+          port: ENVIRONMENT.redis.port,
         },
       },
     ]),
   ],
-  controllers: [...CONTROLLER_IDENTITY],
+  controllers: [...CONTROLLER_IDENTITY, ...CONTROLLER_COURSE],
   providers: [JwtStrategy],
 })
-export class ApiGatewayModule { }
+export class ApiGatewayModule {}
