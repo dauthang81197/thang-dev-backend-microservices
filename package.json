@@ -13,12 +13,19 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/apps/backend/main",
     "start:dev:identity": "nest start --watch identity",
+    "start:dev:api-gateway": "nest start --watch api-gateway",
+    "start:dev:course": "nest start --watch course",
     "build:identity": "nest build identity",
+    "build:course": "nest build course",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "typeorm:migration:generate": "npm run typeorm -- migration:generate -d apps/identity/src/database/ormconfig.ts",
     "typeorm:migration:create": "npm run typeorm -- migration:create",
     "typeorm:migration:run": "npm run typeorm -- migration:run -d apps/identity/src/database/ormconfig.ts",
     "typeorm:migration:revert": "npm run typeorm -- migration:revert -d apps/identity/src/database/ormconfig.ts",
+    "typeorm:course:migration:run": "npm run typeorm -- migration:run -d apps/course/src/database/ormconfig.ts",
+    "typeorm:course:migration:revert": "npm run typeorm -- migration:revert -d apps/course/src/database/ormconfig.ts",
+    "typeorm:course:migration:generate": "npm run typeorm -- migration:generate -d apps/course/src/database/ormconfig.ts",
+    "seed:course": "ts-node apps/course/src/database/seed.ts",
     "migrate:create": "ts-node ./apps/identity/src/scripts/create-migration.ts",
     "migrate:generate": "ts-node ./apps/identity/src/scripts/generate-migration.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -107,5 +114,6 @@
       "^@app/database(|/.*)$": "<rootDir>/libs/database/src/$1",
       "^@app/utils(|/.*)$": "<rootDir>/libs/utils/src/$1"
     }
-  }
+  },
+  "packageManager": "yarn@4.12.0+sha512.f45ab632439a67f8bc759bf32ead036a1f413287b9042726b7cc4818b7b49e14e9423ba49b18f9e06ea4941c1ad062385b1d8760a8d5091a1a31e5f6219afca8"
 }

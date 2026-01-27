@@ -35,6 +35,15 @@
         "tsConfigPath": "libs/common/tsconfig.lib.json"
       }
     },
+    "course": {
+      "type": "application",
+      "root": "apps/course",
+      "entryFile": "main",
+      "sourceRoot": "apps/course/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/course/tsconfig.app.json"
+      }
+    },
     "database": {
       "type": "library",
       "root": "libs/database",

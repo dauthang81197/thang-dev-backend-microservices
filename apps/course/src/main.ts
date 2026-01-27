@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { IdentityModule } from './identity.module';
+import { CourseModule } from './course.module';
 import {
   initializeTransactionalContext,
   StorageDriver,
@@ -11,7 +11,7 @@ import { ENVIRONMENT } from './env/environment';
 async function bootstrap() {
   initializeTransactionalContext({ storageDriver: StorageDriver.AUTO });
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-    IdentityModule,
+    CourseModule,
     {
       transport: Transport.REDIS,
       options: {
@@ -23,7 +23,7 @@ async function bootstrap() {
   console.log('Loaded entities:', connectionOptions.entities);
   await app.listen();
   console.log('ENV DB HOST:', process.env.PORT);
-  console.log('Identity Microservice is running...');
+  console.log('Course Microservice is running...');
 }
 
 bootstrap();
