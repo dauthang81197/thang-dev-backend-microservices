@@ -10,6 +10,7 @@ import { RBACGatewayController } from './controllers/identity/rbac-gateway.contr
 import { CourseGatewayController } from './controllers/course/course-gateway.controller';
 import { CourseAdminGatewayController } from './controllers/course/course-admin-gateway.controller';
 import { JwtStrategy } from './guards/jwt.strategy';
+import { R2StorageService } from './services/r2-storage.service';
 import { ENVIRONMENT } from '../env/environment';
 
 export const CONTROLLER_IDENTITY = [
@@ -39,6 +40,14 @@ export const CONTROLLER_COURSE = [
         options: {
           host: ENVIRONMENT.redis.host,
           port: ENVIRONMENT.redis.port,
+          retryAttempts: 5,
+          retryDelay: 3000,
+          connectTimeout: 10000,
+          keepAlive: 30000,
+          lazyConnect: false,
+          enableOfflineQueue: true,
+          enableReadyCheck: true,
+          maxRetriesPerRequest: 3,
         },
       },
       {
@@ -47,11 +56,19 @@ export const CONTROLLER_COURSE = [
         options: {
           host: ENVIRONMENT.redis.host,
           port: ENVIRONMENT.redis.port,
+          retryAttempts: 5,
+          retryDelay: 3000,
+          connectTimeout: 10000,
+          keepAlive: 30000,
+          lazyConnect: false,
+          enableOfflineQueue: true,
+          enableReadyCheck: true,
+          maxRetriesPerRequest: 3,
         },
       },
     ]),
   ],
   controllers: [...CONTROLLER_IDENTITY, ...CONTROLLER_COURSE],
-  providers: [JwtStrategy],
+  providers: [JwtStrategy, R2StorageService],
 })
-export class ApiGatewayModule {}
+export class ApiGatewayModule { }

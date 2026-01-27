@@ -14,6 +14,7 @@ import {
   FileTypeValidator,
   Inject,
   Request,
+  BadRequestException,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -26,6 +27,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { R2StorageService } from '../../services/r2-storage.service';
 import { firstValueFrom } from 'rxjs';
 
 // DTOs - Define inline or import from shared lib
@@ -101,9 +103,31 @@ interface UpdateLessonDto {
 export class CourseAdminGatewayController {
   constructor(
     @Inject('COURSE_SERVICE') private readonly courseClient: ClientProxy,
-  ) {}
+    private readonly r2StorageService: R2StorageService,
+  ) { }
 
   // ============ COURSE CRUD ============
+
+  @Get()
+  @ApiOperation({ summary: 'Get all courses (admin view with all statuses)' })
+  @ApiResponse({ status: 200, description: 'List of all courses' })
+  async getAllCourses(@Request() req) {
+    return firstValueFrom(
+      this.courseClient.send('course.admin.findAll', {
+        instructorId: req.user.id,
+      }),
+    );
+  }
+
+  @Get(':courseId')
+  @ApiOperation({ summary: 'Get course details by ID (admin)' })
+  @ApiResponse({ status: 200, description: 'Course details retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Course not found' })
+  async getCourseById(@Param('courseId') courseId: string) {
+    return firstValueFrom(
+      this.courseClient.send('course.admin.findOne', { courseId }),
+    );
+  }
 
   @Post()
   @ApiOperation({ summary: 'Create new course' })
@@ -226,8 +250,24 @@ export class CourseAdminGatewayController {
 
   // ============ VIDEO UPLOAD ============
 
+  @Post('lessons/:lessonId/video/check')
+  @ApiOperation({ summary: 'Check file info (debug)' })
+  @UseInterceptors(FileInterceptor('file'))
+  async checkFile(
+    @Param('lessonId') lessonId: string,
+    @UploadedFile() file: any,
+  ) {
+    return {
+      lessonId,
+      filename: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+      sizeInMB: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
+    };
+  }
+
   @Post('lessons/:lessonId/video')
-  @ApiOperation({ summary: 'Upload video for lesson' })
+  @ApiOperation({ summary: 'Upload video for lesson to R2 Cloud Storage' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -236,11 +276,30 @@ export class CourseAdminGatewayController {
         file: {
           type: 'string',
           format: 'binary',
+          description: 'Video file (mp4, webm, ogg, mov) - Max 500MB',
         },
       },
     },
   })
-  @ApiResponse({ status: 200, description: 'Video uploaded successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Video uploaded successfully to R2',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        title: { type: 'string' },
+        videoKey: { type: 'string', description: 'R2 object key' },
+        videoSize: { type: 'number' },
+        videoFormat: { type: 'string' },
+        message: { type: 'string' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid file type or size exceeded',
+  })
   @UseInterceptors(FileInterceptor('file'))
   async uploadVideo(
     @Param('lessonId') lessonId: string,
@@ -248,36 +307,84 @@ export class CourseAdminGatewayController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 500 * 1024 * 1024 }), // 500MB
-          new FileTypeValidator({ fileType: 'video/*' }),
         ],
+        fileIsRequired: true,
       }),
     )
-    file: any, // Multer file type
+    file: any,
   ) {
-    // Forward the file buffer to the course service
-    // Note: In a real microservice, you might want to upload directly from gateway
-    // or use a message broker that supports binary data
+    // Manual validation for video types
+    const allowedMimeTypes = [
+      'video/mp4',
+      'video/webm',
+      'video/ogg',
+      'video/quicktime',
+      'video/x-msvideo', // AVI
+      'video/x-matroska', // MKV
+    ];
 
-    // For now, we'll handle upload in the gateway and send metadata
-    // This is a simplified approach - production might use presigned URLs
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException(
+        `Invalid file type: ${file.mimetype}. Allowed types: mp4, webm, ogg, mov, avi, mkv`,
+      );
+    }
+
+    // Upload directly to R2 from API Gateway (faster than sending through Redis)
+    const videoKey = await this.r2StorageService.uploadFile(
+      file.buffer,
+      file.originalname,
+      file.mimetype,
+      'videos',
+    );
+
+    // Only send metadata to course microservice to update database
+    const result = await firstValueFrom(
+      this.courseClient.send('course.admin.lesson.video-metadata', {
+        lessonId,
+        videoKey,
+        videoSize: file.size,
+        videoFormat: file.mimetype.split('/')[1],
+      }),
+    );
+
     return {
-      message: 'Video upload endpoint - implement upload logic here',
-      lessonId,
-      fileName: file.originalname,
-      size: file.size,
-      mimeType: file.mimetype,
+      ...result,
+      message: 'Video uploaded successfully to R2 Cloud Storage',
     };
   }
 
   @Get('lessons/:lessonId/video-url')
-  @ApiOperation({ summary: 'Get presigned video URL' })
+  @ApiOperation({
+    summary: 'Get presigned video URL from R2 (expires in 1 hour)',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Returns presigned URL for video access',
+    description: 'Returns presigned URL for video access from R2',
+    schema: {
+      type: 'object',
+      properties: {
+        url: {
+          type: 'string',
+          description: 'Presigned URL valid for 1 hour',
+        },
+        lessonId: { type: 'string' },
+        expiresIn: { type: 'number', description: 'Expiration time in seconds' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Lesson not found or no video available',
   })
   async getVideoUrl(@Param('lessonId') lessonId: string) {
-    return firstValueFrom(
+    const url = await firstValueFrom(
       this.courseClient.send('course.admin.lesson.video-url', { lessonId }),
     );
+
+    return {
+      url,
+      lessonId,
+      expiresIn: 3600, // 1 hour
+    };
   }
 }
