@@ -28,6 +28,8 @@
     "seed:course": "ts-node apps/course/src/database/seed.ts",
     "migrate:create": "ts-node ./apps/identity/src/scripts/create-migration.ts",
     "migrate:generate": "ts-node ./apps/identity/src/scripts/generate-migration.ts",
+    "migrate:course:create": "ts-node ./apps/course/src/scripts/create-migration.ts",
+    "migrate:course:generate": "ts-node ./apps/course/src/scripts/generate-migration.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",

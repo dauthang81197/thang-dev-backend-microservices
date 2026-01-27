@@ -24,7 +24,7 @@ import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 @Controller('courses')
 @ApiTags('courses')
 export class CourseGatewayController {
-  constructor(@Inject('COURSE_SERVICE') private courseClient: ClientProxy) {}
+  constructor(@Inject('COURSE_SERVICE') private courseClient: ClientProxy) { }
 
   /**
    * GET /courses
@@ -168,5 +168,24 @@ export class CourseGatewayController {
       courseId,
       userId: req.user.id,
     });
+  }
+
+  /**
+   * GET /courses/:id/sections
+   * Get all sections and lessons for a specific course
+   */
+  @Get(':id/sections')
+  @ApiOperation({ summary: 'Get all sections and lessons for a course' })
+  @ApiParam({ name: 'id', description: 'Course ID (UUID)' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Sections retrieved successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Course not found',
+  })
+  async getCourseSections(@Param('id') courseId: string) {
+    return this.courseClient.send('courses.getSections', { courseId });
   }
 }

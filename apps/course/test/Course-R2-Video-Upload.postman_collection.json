@@ -1,0 +1,377 @@
+{
+    "info": {
+        "name": "Course API - R2 Video Upload",
+        "description": "API collection for testing R2 video upload integration",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{jwt_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000/api",
+            "type": "string"
+        },
+        {
+            "key": "admin_url",
+            "value": "http://localhost:8000/api/admin/courses",
+            "type": "string"
+        },
+        {
+            "key": "jwt_token",
+            "value": "YOUR_JWT_TOKEN",
+            "type": "string"
+        },
+        {
+            "key": "course_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "section_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "lesson_id",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Admin - Course Management",
+            "item": [
+                {
+                    "name": "Create Course",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"Complete NestJS Microservices Course\",\n  \"description\": \"Learn to build scalable microservices with NestJS\",\n  \"category\": \"Programming\",\n  \"level\": \"intermediate\",\n  \"price\": 99.99,\n  \"language\": \"vi\",\n  \"tags\": [\"nodejs\", \"nestjs\", \"microservices\", \"docker\"],\n  \"status\": \"draft\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{admin_url}}",
+                            "host": [
+                                "{{admin_url}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Course",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"Updated Course Title\",\n  \"status\": \"published\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{admin_url}}/{{course_id}}",
+                            "host": [
+                                "{{admin_url}}",
+                                "{{course_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Course",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{admin_url}}/{{course_id}}",
+                            "host": [
+                                "{{admin_url}}",
+                                "{{course_id}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Admin - Section Management",
+            "item": [
+                {
+                    "name": "Create Section",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"Introduction to Microservices\",\n  \"description\": \"Learn the basics of microservices architecture\",\n  \"orderIndex\": 0,\n  \"courseId\": \"{{course_id}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{admin_url}}/sections",
+                            "host": [
+                                "{{admin_url}}",
+                                "sections"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Section",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"Updated Section Title\",\n  \"orderIndex\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{admin_url}}/sections/{{section_id}}",
+                            "host": [
+                                "{{admin_url}}",
+                                "sections",
+                                "{{section_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Section",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{admin_url}}/sections/{{section_id}}",
+                            "host": [
+                                "{{admin_url}}",
+                                "sections",
+                                "{{section_id}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Admin - Lesson Management",
+            "item": [
+                {
+                    "name": "Create Lesson",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"What is Microservices?\",\n  \"description\": \"Introduction to microservices architecture\",\n  \"type\": \"video\",\n  \"duration\": 600,\n  \"orderIndex\": 0,\n  \"isFree\": true,\n  \"sectionId\": \"{{section_id}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{admin_url}}/lessons",
+                            "host": [
+                                "{{admin_url}}",
+                                "lessons"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Lesson",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"title\": \"Updated Lesson Title\",\n  \"duration\": 720,\n  \"isFree\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{admin_url}}/lessons/{{lesson_id}}",
+                            "host": [
+                                "{{admin_url}}",
+                                "lessons",
+                                "{{lesson_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Lesson",
+                    "request": {
+                        "method": "DELETE",
+                        "url": {
+                            "raw": "{{admin_url}}/lessons/{{lesson_id}}",
+                            "host": [
+                                "{{admin_url}}",
+                                "lessons",
+                                "{{lesson_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Lesson Tree",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{admin_url}}/sections/{{section_id}}/lessons/tree",
+                            "host": [
+                                "{{admin_url}}",
+                                "sections",
+                                "{{section_id}}",
+                                "lessons",
+                                "tree"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Admin - R2 Video Upload",
+            "item": [
+                {
+                    "name": "Upload Video to R2",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": "/path/to/video.mp4",
+                                    "description": "Video file (mp4, webm, ogg, mov) - Max 500MB"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{admin_url}}/lessons/{{lesson_id}}/video",
+                            "host": [
+                                "{{admin_url}}",
+                                "lessons",
+                                "{{lesson_id}}",
+                                "video"
+                            ]
+                        },
+                        "description": "Upload video file to Cloudflare R2 storage"
+                    }
+                },
+                {
+                    "name": "Get Video Presigned URL",
+                    "request": {
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{admin_url}}/lessons/{{lesson_id}}/video-url",
+                            "host": [
+                                "{{admin_url}}",
+                                "lessons",
+                                "{{lesson_id}}",
+                                "video-url"
+                            ]
+                        },
+                        "description": "Get presigned URL for video (expires in 1 hour)"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Public - Course API",
+            "item": [
+                {
+                    "name": "Get All Courses",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/courses?page=1&limit=10",
+                            "host": [
+                                "{{base_url}}",
+                                "courses"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "1"
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Course Details",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/courses/{{course_id}}",
+                            "host": [
+                                "{{base_url}}",
+                                "courses",
+                                "{{course_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Course Sections",
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "url": {
+                            "raw": "{{base_url}}/courses/{{course_id}}/sections",
+                            "host": [
+                                "{{base_url}}",
+                                "courses",
+                                "{{course_id}}",
+                                "sections"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

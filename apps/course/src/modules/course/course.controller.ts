@@ -8,6 +8,7 @@ import {
   CourseListResponseDto,
   CourseProgressResponseDto,
   EnrollmentResponseDto,
+  CourseSectionsResponseDto,
 } from './dto';
 import { Course } from '../../shareds/entities';
 
@@ -17,7 +18,7 @@ export class CourseController {
     private readonly courseService: CourseService,
     private readonly enrollmentService: EnrollmentService,
     private readonly progressService: ProgressService,
-  ) {}
+  ) { }
 
   /**
    * Message Pattern: courses.findAll
@@ -73,5 +74,16 @@ export class CourseController {
       payload.userId,
       payload.courseId,
     );
+  }
+
+  /**
+   * Message Pattern: courses.getSections
+   * Get all sections and lessons for a specific course
+   */
+  @MessagePattern('courses.getSections')
+  async getCourseSections(
+    @Payload() payload: { courseId: string },
+  ): Promise<CourseSectionsResponseDto> {
+    return this.courseService.getCourseSections(payload.courseId);
   }
 }

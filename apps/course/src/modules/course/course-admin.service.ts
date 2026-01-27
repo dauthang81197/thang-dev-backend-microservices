@@ -26,9 +26,74 @@ export class CourseAdminService {
     @InjectRepository(Lesson)
     private lessonRepository: Repository<Lesson>,
     private r2StorageService: R2StorageService,
-  ) {}
+  ) { }
 
   // ============ COURSE CRUD ============
+
+  async findAllCourses(instructorId: string): Promise<Course[]> {
+    const courses = await this.courseRepository
+      .createQueryBuilder('course')
+      .leftJoinAndSelect('course.sections', 'section')
+      .leftJoinAndSelect('section.lessons', 'lesson')
+      .where('course.instructorId = :instructorId', { instructorId })
+      .orderBy('course.createdAt', 'DESC')
+      .addOrderBy('section.orderIndex', 'ASC')
+      .addOrderBy('lesson.orderIndex', 'ASC')
+      .getMany();
+
+    // Calculate virtual fields for each course
+    courses.forEach((course) => {
+      course.totalLessons = course.sections?.reduce(
+        (acc, section) => acc + (section.lessons?.length || 0),
+        0,
+      );
+      course.totalDuration = course.sections?.reduce(
+        (acc, section) =>
+          acc +
+          (section.lessons?.reduce(
+            (lessonAcc, lesson) => lessonAcc + lesson.duration,
+            0,
+          ) || 0),
+        0,
+      );
+    });
+
+    this.logger.log(`Found ${courses.length} courses for instructor: ${instructorId}`);
+    return courses;
+  }
+
+  async findOneCourse(courseId: string): Promise<Course> {
+    const course = await this.courseRepository
+      .createQueryBuilder('course')
+      .leftJoinAndSelect('course.sections', 'section')
+      .leftJoinAndSelect('section.lessons', 'lesson')
+      .where('course.id = :courseId', { courseId })
+      .orderBy('section.orderIndex', 'ASC')
+      .addOrderBy('lesson.orderIndex', 'ASC')
+      .getOne();
+
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${courseId} not found`);
+    }
+
+    // Calculate virtual fields
+    course.totalLessons = course.sections?.reduce(
+      (acc, section) => acc + (section.lessons?.length || 0),
+      0,
+    );
+    course.totalDuration = course.sections?.reduce(
+      (acc, section) =>
+        acc +
+        (section.lessons?.reduce(
+          (lessonAcc, lesson) => lessonAcc + lesson.duration,
+          0,
+        ) || 0),
+      0,
+    );
+
+    this.logger.log(`Found course: ${courseId}`);
+    return course;
+  }
 
   async createCourse(
     createCourseDto: CreateCourseDto,
@@ -245,6 +310,49 @@ export class CourseAdminService {
 
   // ============ VIDEO UPLOAD ============
 
+  /**
+   * Update lesson with video metadata (new optimized method)
+   * File is uploaded directly from API Gateway to R2
+   */
+  async updateLessonVideoMetadata(
+    lessonId: string,
+    videoKey: string,
+    videoSize: number,
+    videoFormat: string,
+  ): Promise<Lesson> {
+    const lesson = await this.lessonRepository.findOne({
+      where: { id: lessonId },
+    });
+
+    if (!lesson) {
+      throw new NotFoundException('Lesson not found');
+    }
+
+    // Delete old video if exists
+    if (lesson.videoKey && lesson.videoKey !== videoKey) {
+      try {
+        await this.r2StorageService.deleteFile(lesson.videoKey);
+        this.logger.log(`Old video deleted: ${lesson.videoKey}`);
+      } catch (error) {
+        this.logger.warn(`Failed to delete old video: ${error.message}`);
+      }
+    }
+
+    // Update lesson with new video metadata
+    lesson.videoKey = videoKey;
+    lesson.videoSize = videoSize;
+    lesson.videoFormat = videoFormat;
+    lesson.content = videoKey; // Store R2 key in content field
+
+    const updatedLesson = await this.lessonRepository.save(lesson);
+    this.logger.log(`Video metadata updated for lesson: ${lessonId}`);
+    return updatedLesson;
+  }
+
+  /**
+   * Upload lesson video (legacy method - slower through Redis)
+   * Kept for backward compatibility
+   */
   async uploadLessonVideo(
     lessonId: string,
     file: {

@@ -1,0 +1,132 @@
+### R2 Video Upload API Tests
+### Base URL
+@baseUrl = http://localhost:8000/api
+@adminBaseUrl = http://localhost:8000/api/admin/courses
+@token = YOUR_JWT_TOKEN_HERE
+@lessonId = YOUR_LESSON_ID_HERE
+@courseId = YOUR_COURSE_ID_HERE
+
+### ============================================
+### 1. Create a Course (Admin)
+### ============================================
+POST {{adminBaseUrl}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Complete Video Course",
+  "description": "A comprehensive course with video lessons",
+  "category": "Programming",
+  "level": "intermediate",
+  "price": 99.99,
+  "language": "vi",
+  "tags": ["nodejs", "nestjs", "microservices"],
+  "status": "draft"
+}
+
+### ============================================
+### 1.1. Get All Courses (Admin - My Courses)
+### ============================================
+GET {{adminBaseUrl}}
+Authorization: Bearer {{token}}
+
+### ============================================
+### 1.2. Get Course by ID (Admin)
+### ============================================
+GET {{adminBaseUrl}}/94c6d019-0982-4d3d-951b-fb898a575a34
+Authorization: Bearer {{token}}
+
+### ============================================
+### 2. Create a Section
+### ============================================
+POST {{adminBaseUrl}}/sections
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Introduction to Video Lessons",
+  "description": "Learn how to upload and manage videos",
+  "orderIndex": 0,
+  "courseId": "{{courseId}}"
+}
+
+### ============================================
+### 3. Create a Lesson
+### ============================================
+POST {{adminBaseUrl}}/lessons
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "First Video Lesson",
+  "description": "This is our first video lesson",
+  "type": "video",
+  "duration": 600,
+  "orderIndex": 0,
+  "isFree": true,
+  "sectionId": "YOUR_SECTION_ID_HERE"
+}
+
+### ============================================
+### 4. Upload Video to R2 (Upload file from local)
+### ============================================
+# @name uploadVideo
+POST {{adminBaseUrl}}/lessons/{{lessonId}}/video
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="sample.mp4"
+Content-Type: video/mp4
+
+< ./sample-video.mp4
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### ============================================
+### 5. Get Video Presigned URL from R2
+### ============================================
+GET {{adminBaseUrl}}/lessons/{{lessonId}}/video-url
+Authorization: Bearer {{token}}
+
+### ============================================
+### 6. Get Course Sections (Public)
+### ============================================
+GET {{baseUrl}}/courses/{{courseId}}/sections
+
+### ============================================
+### 7. Get Lesson Tree for Section
+### ============================================
+GET {{adminBaseUrl}}/sections/YOUR_SECTION_ID_HERE/lessons/tree
+Authorization: Bearer {{token}}
+
+### ============================================
+### 8. Update Lesson
+### ============================================
+PUT {{adminBaseUrl}}/lessons/{{lessonId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Updated Video Lesson Title",
+  "duration": 720,
+  "isFree": false
+}
+
+### ============================================
+### 9. Delete Lesson (will also delete video from R2)
+### ============================================
+DELETE {{adminBaseUrl}}/lessons/{{lessonId}}
+Authorization: Bearer {{token}}
+
+### ============================================
+### Test with cURL
+### ============================================
+
+# Upload Video
+# curl -X POST http://localhost:8000/api/admin/courses/lessons/LESSON_ID/video \
+#   -H "Authorization: Bearer YOUR_TOKEN" \
+#   -F "file=@/path/to/video.mp4"
+
+# Get Video URL
+# curl -X GET http://localhost:8000/api/admin/courses/lessons/LESSON_ID/video-url \
+#   -H "Authorization: Bearer YOUR_TOKEN"

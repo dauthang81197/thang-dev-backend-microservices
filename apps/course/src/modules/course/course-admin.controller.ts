@@ -9,9 +9,21 @@ import { CreateLessonDto, UpdateLessonDto } from './dto/create-lesson.dto';
 export class CourseAdminController {
   private readonly logger = new Logger(CourseAdminController.name);
 
-  constructor(private readonly courseAdminService: CourseAdminService) {}
+  constructor(private readonly courseAdminService: CourseAdminService) { }
 
   // ============ COURSE CRUD ============
+
+  @MessagePattern('course.admin.findAll')
+  async getAllCourses(@Payload() data: { instructorId: string }) {
+    this.logger.log(`Getting all courses for instructor: ${data.instructorId}`);
+    return this.courseAdminService.findAllCourses(data.instructorId);
+  }
+
+  @MessagePattern('course.admin.findOne')
+  async getCourse(@Payload() data: { courseId: string }) {
+    this.logger.log(`Getting course: ${data.courseId}`);
+    return this.courseAdminService.findOneCourse(data.courseId);
+  }
 
   @MessagePattern('course.admin.create')
   async createCourse(
@@ -86,6 +98,48 @@ export class CourseAdminController {
   async getLessonTree(@Payload() data: { sectionId: string }) {
     this.logger.log(`Getting lesson tree for section: ${data.sectionId}`);
     return this.courseAdminService.getLessonTree(data.sectionId);
+  }
+
+  // ============ VIDEO UPLOAD (R2) ============
+
+  @MessagePattern('course.admin.lesson.video-metadata')
+  async updateLessonVideoMetadata(
+    @Payload()
+    data: {
+      lessonId: string;
+      videoKey: string;
+      videoSize: number;
+      videoFormat: string;
+    },
+  ) {
+    this.logger.log(`Updating video metadata for lesson: ${data.lessonId}`);
+    return this.courseAdminService.updateLessonVideoMetadata(
+      data.lessonId,
+      data.videoKey,
+      data.videoSize,
+      data.videoFormat,
+    );
+  }
+
+  @MessagePattern('course.admin.lesson.video-upload')
+  async uploadLessonVideo(
+    @Payload()
+    data: {
+      lessonId: string;
+      file: {
+        buffer: Buffer;
+        originalname: string;
+        mimetype: string;
+        size: number;
+      };
+    },
+  ) {
+    this.logger.log(`Uploading video for lesson: ${data.lessonId} (Legacy method)`);
+    // Convert buffer if needed (microservice transport may serialize it)
+    if (data.file.buffer && typeof data.file.buffer === 'object') {
+      data.file.buffer = Buffer.from(Object.values(data.file.buffer));
+    }
+    return this.courseAdminService.uploadLessonVideo(data.lessonId, data.file);
   }
 
   @MessagePattern('course.admin.lesson.video-url')
