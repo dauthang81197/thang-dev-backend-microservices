@@ -38,7 +38,11 @@ export class CourseAdminService {
       ...createCourseDto,
       instructorId,
     });
-
+    console.log(
+      createCourseDto,
+      instructorId,
+      'createCourseDtocreateCourseDto',
+    );
     const savedCourse = await this.courseRepository.save(course);
     this.logger.log(`Course created: ${savedCourse.id}`);
     return savedCourse;

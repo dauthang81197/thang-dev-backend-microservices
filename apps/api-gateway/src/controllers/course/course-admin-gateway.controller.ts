@@ -109,7 +109,7 @@ export class CourseAdminGatewayController {
   @ApiOperation({ summary: 'Create new course' })
   @ApiResponse({ status: 201, description: 'Course created successfully' })
   async createCourse(@Body() createCourseDto: CreateCourseDto, @Request() req) {
-    const instructorId = req.user.userId; // From JWT token
+    const instructorId = req.user.id; // From JWT token
     return firstValueFrom(
       this.courseClient.send('course.admin.create', {
         dto: createCourseDto,
