@@ -58,6 +58,30 @@ export class Lesson {
   @Column({ type: 'simple-array', nullable: true })
   attachments: string[]; // URLs to downloadable resources
 
+  // Tree structure fields for hierarchical lessons
+  @Column({ type: 'uuid', nullable: true })
+  @Index()
+  parentId: string | null; // Parent lesson ID for nested structure
+
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  path: string | null; // Materialized path (e.g., "uuid1.uuid2.uuid3")
+
+  @Column({ type: 'int', default: 0 })
+  level: number; // Depth level in the tree (0 = root)
+
+  @Column({ type: 'int', default: 0 })
+  childrenCount: number; // Number of direct children (denormalized)
+
+  // R2 video storage fields
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  videoKey: string; // R2 object key for video file
+
+  @Column({ type: 'bigint', nullable: true })
+  videoSize: number; // Video file size in bytes
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  videoFormat: string; // Video format (mp4, webm, etc.)
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -70,6 +94,15 @@ export class Lesson {
   })
   @JoinColumn({ name: 'sectionId' })
   section: Section;
+
+  @ManyToOne(() => Lesson, (lesson) => lesson.children, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'parentId' })
+  parent: Lesson;
+
+  @OneToMany(() => Lesson, (lesson) => lesson.parent)
+  children: Lesson[];
 
   @OneToMany(() => LessonProgress, (progress) => progress.lesson)
   progress: LessonProgress[];
