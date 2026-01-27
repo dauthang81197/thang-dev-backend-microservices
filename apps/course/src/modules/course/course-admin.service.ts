@@ -1,0 +1,408 @@
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Course } from '../../shareds/entities/course.entity';
+import { Section } from '../../shareds/entities/section.entity';
+import { Lesson } from '../../shareds/entities/lesson.entity';
+import { CreateCourseDto, UpdateCourseDto } from './dto/create-course.dto';
+import { CreateSectionDto, UpdateSectionDto } from './dto/create-section.dto';
+import { CreateLessonDto, UpdateLessonDto } from './dto/create-lesson.dto';
+import { R2StorageService } from '../../shareds/services/r2-storage.service';
+
+@Injectable()
+export class CourseAdminService {
+  private readonly logger = new Logger(CourseAdminService.name);
+
+  constructor(
+    @InjectRepository(Course)
+    private courseRepository: Repository<Course>,
+    @InjectRepository(Section)
+    private sectionRepository: Repository<Section>,
+    @InjectRepository(Lesson)
+    private lessonRepository: Repository<Lesson>,
+    private r2StorageService: R2StorageService,
+  ) {}
+
+  // ============ COURSE CRUD ============
+
+  async createCourse(
+    createCourseDto: CreateCourseDto,
+    instructorId: string,
+  ): Promise<Course> {
+    const course = this.courseRepository.create({
+      ...createCourseDto,
+      instructorId,
+    });
+    console.log(
+      createCourseDto,
+      instructorId,
+      'createCourseDtocreateCourseDto',
+    );
+    const savedCourse = await this.courseRepository.save(course);
+    this.logger.log(`Course created: ${savedCourse.id}`);
+    return savedCourse;
+  }
+
+  async updateCourse(
+    courseId: string,
+    updateCourseDto: UpdateCourseDto,
+  ): Promise<Course> {
+    const course = await this.courseRepository.findOne({
+      where: { id: courseId },
+    });
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    Object.assign(course, updateCourseDto);
+    const updatedCourse = await this.courseRepository.save(course);
+    this.logger.log(`Course updated: ${courseId}`);
+    return updatedCourse;
+  }
+
+  async deleteCourse(courseId: string): Promise<void> {
+    const course = await this.courseRepository.findOne({
+      where: { id: courseId },
+    });
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    // Delete thumbnail from R2 if exists
+    if (course.thumbnail) {
+      try {
+        await this.r2StorageService.deleteFile(course.thumbnail);
+      } catch (error) {
+        this.logger.warn(`Failed to delete thumbnail: ${error.message}`);
+      }
+    }
+
+    await this.courseRepository.remove(course);
+    this.logger.log(`Course deleted: ${courseId}`);
+  }
+
+  // ============ SECTION CRUD ============
+
+  async createSection(createSectionDto: CreateSectionDto): Promise<Section> {
+    const { courseId } = createSectionDto;
+
+    // Verify course exists
+    const course = await this.courseRepository.findOne({
+      where: { id: courseId },
+    });
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    const section = this.sectionRepository.create(createSectionDto);
+    const savedSection = await this.sectionRepository.save(section);
+    this.logger.log(`Section created: ${savedSection.id}`);
+    return savedSection;
+  }
+
+  async updateSection(
+    sectionId: string,
+    updateSectionDto: UpdateSectionDto,
+  ): Promise<Section> {
+    const section = await this.sectionRepository.findOne({
+      where: { id: sectionId },
+    });
+
+    if (!section) {
+      throw new NotFoundException('Section not found');
+    }
+
+    Object.assign(section, updateSectionDto);
+    const updatedSection = await this.sectionRepository.save(section);
+    this.logger.log(`Section updated: ${sectionId}`);
+    return updatedSection;
+  }
+
+  async deleteSection(sectionId: string): Promise<void> {
+    const section = await this.sectionRepository.findOne({
+      where: { id: sectionId },
+    });
+
+    if (!section) {
+      throw new NotFoundException('Section not found');
+    }
+
+    await this.sectionRepository.remove(section);
+    this.logger.log(`Section deleted: ${sectionId}`);
+  }
+
+  // ============ LESSON CRUD ============
+
+  async createLesson(createLessonDto: CreateLessonDto): Promise<Lesson> {
+    const { sectionId, parentId } = createLessonDto;
+
+    // Verify section exists
+    const section = await this.sectionRepository.findOne({
+      where: { id: sectionId },
+    });
+    if (!section) {
+      throw new NotFoundException('Section not found');
+    }
+
+    // Handle hierarchical structure
+    let path = '';
+    let level = 0;
+
+    if (parentId) {
+      const parent = await this.lessonRepository.findOne({
+        where: { id: parentId },
+      });
+
+      if (!parent) {
+        throw new NotFoundException('Parent lesson not found');
+      }
+
+      // Build materialized path
+      path = parent.path ? `${parent.path}.${parentId}` : parentId;
+      level = parent.level + 1;
+
+      // Increment parent's children count
+      parent.childrenCount += 1;
+      await this.lessonRepository.save(parent);
+    }
+
+    const lesson = this.lessonRepository.create({
+      ...createLessonDto,
+      path,
+      level,
+    });
+
+    const savedLesson = await this.lessonRepository.save(lesson);
+    this.logger.log(`Lesson created: ${savedLesson.id}`);
+    return savedLesson;
+  }
+
+  async updateLesson(
+    lessonId: string,
+    updateLessonDto: UpdateLessonDto,
+  ): Promise<Lesson> {
+    const lesson = await this.lessonRepository.findOne({
+      where: { id: lessonId },
+    });
+
+    if (!lesson) {
+      throw new NotFoundException('Lesson not found');
+    }
+
+    // If parent is being changed, handle tree restructuring
+    if (
+      updateLessonDto.parentId !== undefined &&
+      updateLessonDto.parentId !== lesson.parentId
+    ) {
+      await this.updateLessonParent(lesson, updateLessonDto.parentId);
+    }
+
+    Object.assign(lesson, updateLessonDto);
+    const updatedLesson = await this.lessonRepository.save(lesson);
+    this.logger.log(`Lesson updated: ${lessonId}`);
+    return updatedLesson;
+  }
+
+  async deleteLesson(lessonId: string): Promise<void> {
+    const lesson = await this.lessonRepository.findOne({
+      where: { id: lessonId },
+    });
+
+    if (!lesson) {
+      throw new NotFoundException('Lesson not found');
+    }
+
+    // Delete video from R2 if exists
+    if (lesson.videoKey) {
+      try {
+        await this.r2StorageService.deleteFile(lesson.videoKey);
+      } catch (error) {
+        this.logger.warn(`Failed to delete video: ${error.message}`);
+      }
+    }
+
+    // Decrement parent's children count
+    if (lesson.parentId) {
+      const parent = await this.lessonRepository.findOne({
+        where: { id: lesson.parentId },
+      });
+      if (parent) {
+        parent.childrenCount = Math.max(0, parent.childrenCount - 1);
+        await this.lessonRepository.save(parent);
+      }
+    }
+
+    await this.lessonRepository.remove(lesson);
+    this.logger.log(`Lesson deleted: ${lessonId}`);
+  }
+
+  // ============ VIDEO UPLOAD ============
+
+  async uploadLessonVideo(
+    lessonId: string,
+    file: {
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    },
+  ): Promise<Lesson> {
+    const lesson = await this.lessonRepository.findOne({
+      where: { id: lessonId },
+    });
+
+    if (!lesson) {
+      throw new NotFoundException('Lesson not found');
+    }
+
+    // Validate file type
+    const allowedMimeTypes = [
+      'video/mp4',
+      'video/webm',
+      'video/ogg',
+      'video/quicktime',
+    ];
+
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException(
+        'Invalid file type. Only video files are allowed.',
+      );
+    }
+
+    // Delete old video if exists
+    if (lesson.videoKey) {
+      try {
+        await this.r2StorageService.deleteFile(lesson.videoKey);
+      } catch (error) {
+        this.logger.warn(`Failed to delete old video: ${error.message}`);
+      }
+    }
+
+    // Upload to R2
+    const videoKey = await this.r2StorageService.uploadFile(
+      file.buffer,
+      file.originalname,
+      file.mimetype,
+      'videos',
+    );
+
+    // Update lesson with video metadata
+    lesson.videoKey = videoKey;
+    lesson.videoSize = file.size;
+    lesson.videoFormat = file.mimetype.split('/')[1];
+    lesson.content = videoKey; // Store R2 key in content field
+
+    const updatedLesson = await this.lessonRepository.save(lesson);
+    this.logger.log(`Video uploaded for lesson: ${lessonId}`);
+    return updatedLesson;
+  }
+
+  async getLessonVideoUrl(lessonId: string): Promise<string> {
+    const lesson = await this.lessonRepository.findOne({
+      where: { id: lessonId },
+    });
+
+    if (!lesson) {
+      throw new NotFoundException('Lesson not found');
+    }
+
+    if (!lesson.videoKey) {
+      throw new NotFoundException('No video found for this lesson');
+    }
+
+    // Generate presigned URL (expires in 1 hour)
+    const url = await this.r2StorageService.getPresignedUrl(
+      lesson.videoKey,
+      3600,
+    );
+
+    return url;
+  }
+
+  // ============ HELPER METHODS ============
+
+  private async updateLessonParent(
+    lesson: Lesson,
+    newParentId: string | null,
+  ): Promise<void> {
+    // Decrement old parent's children count
+    if (lesson.parentId) {
+      const oldParent = await this.lessonRepository.findOne({
+        where: { id: lesson.parentId },
+      });
+      if (oldParent) {
+        oldParent.childrenCount = Math.max(0, oldParent.childrenCount - 1);
+        await this.lessonRepository.save(oldParent);
+      }
+    }
+
+    // Update new parent
+    if (newParentId) {
+      const newParent = await this.lessonRepository.findOne({
+        where: { id: newParentId },
+      });
+
+      if (!newParent) {
+        throw new NotFoundException('New parent lesson not found');
+      }
+
+      lesson.parentId = newParentId;
+      lesson.path = newParent.path
+        ? `${newParent.path}.${newParentId}`
+        : newParentId;
+      lesson.level = newParent.level + 1;
+
+      newParent.childrenCount += 1;
+      await this.lessonRepository.save(newParent);
+    } else {
+      // Moving to root level
+      lesson.parentId = null;
+      lesson.path = null;
+      lesson.level = 0;
+    }
+  }
+
+  // Get lesson tree for a section
+  async getLessonTree(sectionId: string): Promise<Lesson[]> {
+    const lessons = await this.lessonRepository.find({
+      where: { sectionId },
+      order: { level: 'ASC', orderIndex: 'ASC' },
+    });
+
+    return this.buildLessonTree(lessons);
+  }
+
+  private buildLessonTree(lessons: Lesson[]): Lesson[] {
+    const lessonMap = new Map<string, Lesson & { children?: Lesson[] }>();
+    const rootLessons: Lesson[] = [];
+
+    // Create a map of all lessons
+    lessons.forEach((lesson) => {
+      lessonMap.set(lesson.id, { ...lesson, children: [] });
+    });
+
+    // Build the tree structure
+    lessons.forEach((lesson) => {
+      const lessonNode = lessonMap.get(lesson.id);
+      if (!lessonNode) return;
+
+      if (lesson.parentId && lessonMap.has(lesson.parentId)) {
+        const parent = lessonMap.get(lesson.parentId);
+        if (parent && parent.children) {
+          parent.children.push(lessonNode);
+        }
+      } else {
+        rootLessons.push(lessonNode);
+      }
+    });
+
+    return rootLessons;
+  }
+}

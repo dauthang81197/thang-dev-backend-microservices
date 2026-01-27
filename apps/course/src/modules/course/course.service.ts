@@ -46,7 +46,7 @@ export class CourseService {
     queryBuilder.skip(skip).take(limit);
 
     const [courses, total] = await queryBuilder.getManyAndCount();
-
+    console.log(courses, 'fasdlkhf');
     // Calculate virtual fields
     courses.forEach((course) => {
       course.totalLessons = course.sections?.reduce(
@@ -65,7 +65,7 @@ export class CourseService {
     });
 
     return {
-      courses,
+      data: courses,
       total,
       page,
       limit,

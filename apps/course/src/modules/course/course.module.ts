@@ -8,9 +8,12 @@ import {
   LessonProgress,
 } from '../../shareds/entities';
 import { CourseController } from './course.controller';
+import { CourseAdminController } from './course-admin.controller';
 import { CourseService } from './course.service';
+import { CourseAdminService } from './course-admin.service';
 import { EnrollmentService } from './enrollment.service';
 import { ProgressService } from './progress.service';
+import { R2StorageService } from '../../shareds/services/r2-storage.service';
 
 @Module({
   imports: [
@@ -22,8 +25,20 @@ import { ProgressService } from './progress.service';
       LessonProgress,
     ]),
   ],
-  controllers: [CourseController],
-  providers: [CourseService, EnrollmentService, ProgressService],
-  exports: [CourseService, EnrollmentService, ProgressService],
+  controllers: [CourseController, CourseAdminController],
+  providers: [
+    CourseService,
+    CourseAdminService,
+    EnrollmentService,
+    ProgressService,
+    R2StorageService,
+  ],
+  exports: [
+    CourseService,
+    CourseAdminService,
+    EnrollmentService,
+    ProgressService,
+    R2StorageService,
+  ],
 })
 export class CourseModule {}

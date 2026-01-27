@@ -8,6 +8,7 @@ import { RoleGatewayController } from './controllers/identity/role-gateway.contr
 import { PermissionGatewayController } from './controllers/identity/permission-gateway.controller';
 import { RBACGatewayController } from './controllers/identity/rbac-gateway.controller';
 import { CourseGatewayController } from './controllers/course/course-gateway.controller';
+import { CourseAdminGatewayController } from './controllers/course/course-admin-gateway.controller';
 import { JwtStrategy } from './guards/jwt.strategy';
 import { ENVIRONMENT } from '../env/environment';
 
@@ -19,7 +20,10 @@ export const CONTROLLER_IDENTITY = [
   RBACGatewayController,
 ];
 
-export const CONTROLLER_COURSE = [CourseGatewayController];
+export const CONTROLLER_COURSE = [
+  CourseGatewayController,
+  CourseAdminGatewayController,
+];
 
 @Module({
   imports: [
