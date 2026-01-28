@@ -104,7 +104,7 @@ export class CourseAdminGatewayController {
   constructor(
     @Inject('COURSE_SERVICE') private readonly courseClient: ClientProxy,
     private readonly r2StorageService: R2StorageService,
-  ) { }
+  ) {}
 
   // ============ COURSE CRUD ============
 
@@ -121,7 +121,10 @@ export class CourseAdminGatewayController {
 
   @Get(':courseId')
   @ApiOperation({ summary: 'Get course details by ID (admin)' })
-  @ApiResponse({ status: 200, description: 'Course details retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Course details retrieved successfully',
+  })
   @ApiResponse({ status: 404, description: 'Course not found' })
   async getCourseById(@Param('courseId') courseId: string) {
     return firstValueFrom(
@@ -248,6 +251,95 @@ export class CourseAdminGatewayController {
     );
   }
 
+  // ============ THUMBNAIL UPLOAD ============
+
+  @Post(':courseId/thumbnail')
+  @ApiOperation({ summary: 'Upload thumbnail image for course to R2' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'Image file (jpg, jpeg, png, webp, gif) - Max 5MB',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Thumbnail uploaded successfully to R2',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        title: { type: 'string' },
+        thumbnail: { type: 'string', description: 'R2 public URL' },
+        thumbnailKey: { type: 'string', description: 'R2 object key' },
+        message: { type: 'string' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid file type or size exceeded',
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadThumbnail(
+    @Param('courseId') courseId: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
+        ],
+        fileIsRequired: true,
+      }),
+    )
+    file: any,
+  ) {
+    // Manual validation for image types
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+    ];
+
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException(
+        `Invalid file type: ${file.mimetype}. Allowed types: jpg, jpeg, png, webp, gif`,
+      );
+    }
+
+    // Upload directly to R2 from API Gateway
+    const thumbnailKey = await this.r2StorageService.uploadFile(
+      file.buffer,
+      file.originalname,
+      file.mimetype,
+      'thumbnails',
+    );
+
+    // Get public URL
+    const thumbnailUrl = this.r2StorageService.getPublicUrl(thumbnailKey);
+
+    // Update course with thumbnail URL and key
+    const result = await firstValueFrom(
+      this.courseClient.send('course.admin.update-thumbnail', {
+        courseId,
+        thumbnail: thumbnailUrl,
+        thumbnailKey,
+      }),
+    );
+
+    return {
+      ...result,
+      message: 'Thumbnail uploaded successfully to R2 Cloud Storage',
+    };
+  }
+
   // ============ VIDEO UPLOAD ============
 
   @Post('lessons/:lessonId/video/check')
@@ -368,7 +460,10 @@ export class CourseAdminGatewayController {
           description: 'Presigned URL valid for 1 hour',
         },
         lessonId: { type: 'string' },
-        expiresIn: { type: 'number', description: 'Expiration time in seconds' },
+        expiresIn: {
+          type: 'number',
+          description: 'Expiration time in seconds',
+        },
       },
     },
   })
