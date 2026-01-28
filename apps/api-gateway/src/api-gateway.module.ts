@@ -9,6 +9,7 @@ import { PermissionGatewayController } from './controllers/identity/permission-g
 import { RBACGatewayController } from './controllers/identity/rbac-gateway.controller';
 import { CourseGatewayController } from './controllers/course/course-gateway.controller';
 import { CourseAdminGatewayController } from './controllers/course/course-admin-gateway.controller';
+import { LessonGatewayController } from './controllers/course/lesson-gateway.controller';
 import { JwtStrategy } from './guards/jwt.strategy';
 import { R2StorageService } from './services/r2-storage.service';
 import { ENVIRONMENT } from '../env/environment';
@@ -24,6 +25,7 @@ export const CONTROLLER_IDENTITY = [
 export const CONTROLLER_COURSE = [
   CourseGatewayController,
   CourseAdminGatewayController,
+  LessonGatewayController,
 ];
 
 @Module({
