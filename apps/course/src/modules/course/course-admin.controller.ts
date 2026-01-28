@@ -48,6 +48,23 @@ export class CourseAdminController {
     return { success: true };
   }
 
+  @MessagePattern('course.admin.update-thumbnail')
+  async updateCourseThumbnail(
+    @Payload()
+    data: {
+      courseId: string;
+      thumbnail: string;
+      thumbnailKey: string;
+    },
+  ) {
+    this.logger.log(`Updating thumbnail for course: ${data.courseId}`);
+    return this.courseAdminService.updateCourseThumbnail(
+      data.courseId,
+      data.thumbnail,
+      data.thumbnailKey,
+    );
+  }
+
   // ============ SECTION CRUD ============
 
   @MessagePattern('course.admin.section.create')

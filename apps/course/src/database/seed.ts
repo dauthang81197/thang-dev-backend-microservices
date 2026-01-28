@@ -7,20 +7,90 @@ import {
   CourseStatus,
   LessonType,
 } from '../shareds/entities';
+import { R2StorageService } from '../shareds/services/r2-storage.service';
+import * as https from 'https';
+import * as http from 'http';
+import { dataSource } from './ormconfig';
 
 /**
  * Seed script to populate database with sample course data
- * Run: ts-node apps/course/src/database/seed.ts
+ * Run: npm run seed:course
  */
+
+/**
+ * Download image from URL and return buffer
+ */
+async function downloadImage(url: string): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const protocol = url.startsWith('https') ? https : http;
+
+    protocol
+      .get(url, (response) => {
+        if (response.statusCode !== 200) {
+          reject(new Error(`Failed to download image: ${response.statusCode}`));
+          return;
+        }
+
+        const chunks: Buffer[] = [];
+        response.on('data', (chunk) => chunks.push(chunk));
+        response.on('end', () => resolve(Buffer.concat(chunks)));
+        response.on('error', reject);
+      })
+      .on('error', reject);
+  });
+}
+
+/**
+ * Upload thumbnail to R2 and return public URL
+ */
+async function uploadThumbnail(
+  r2Service: R2StorageService,
+  imageUrl: string,
+  courseName: string,
+): Promise<string> {
+  try {
+    console.log(`  📥 Downloading thumbnail from: ${imageUrl}`);
+    const imageBuffer = await downloadImage(imageUrl);
+
+    const fileName = `${courseName.toLowerCase().replace(/\s+/g, '-')}.jpg`;
+    const mimeType = 'image/jpeg';
+
+    console.log(`  📤 Uploading to R2: ${fileName}`);
+    const key = await r2Service.uploadFile(
+      imageBuffer,
+      fileName,
+      mimeType,
+      'thumbnails',
+    );
+
+    const publicUrl = r2Service.getPublicUrl(key);
+    console.log(`  ✅ Thumbnail uploaded: ${publicUrl}`);
+
+    return publicUrl;
+  } catch (error) {
+    console.warn(`  ⚠️  Failed to upload thumbnail: ${error.message}`);
+    console.warn(`  📌 Using fallback URL: ${imageUrl}`);
+    return imageUrl; // Fallback to original URL if upload fails
+  }
+}
 
 export async function seedCourses(dataSource: DataSource) {
   const courseRepository = dataSource.getRepository(Course);
   const sectionRepository = dataSource.getRepository(Section);
   const lessonRepository = dataSource.getRepository(Lesson);
+  const r2Service = new R2StorageService();
 
   console.log('🌱 Seeding courses...');
 
   // Course 1: Introduction to JavaScript
+  console.log('\n📚 Creating Course 1: JavaScript...');
+
+  const jsThumbnailUrl = await uploadThumbnail(
+    r2Service,
+    'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=800&h=450&fit=crop',
+    'Complete JavaScript Course',
+  );
+
   const jsCourse = courseRepository.create({
     title: 'Complete JavaScript Course',
     description:
@@ -28,7 +98,7 @@ export async function seedCourses(dataSource: DataSource) {
     category: 'programming',
     level: CourseLevel.BEGINNER,
     price: 29.99,
-    thumbnail: 'https://example.com/js-course.jpg',
+    thumbnail: jsThumbnailUrl,
     previewVideo: 'https://example.com/js-preview.mp4',
     status: CourseStatus.PUBLISHED,
     instructorId: '123e4567-e89b-12d3-a456-426614174000',
@@ -158,6 +228,14 @@ export async function seedCourses(dataSource: DataSource) {
   console.log('✅ Course 1: JavaScript created');
 
   // Course 2: Python for Data Science
+  console.log('\n📚 Creating Course 2: Python...');
+
+  const pythonThumbnailUrl = await uploadThumbnail(
+    r2Service,
+    'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=800&h=450&fit=crop',
+    'Python for Data Science',
+  );
+
   const pythonCourse = courseRepository.create({
     title: 'Python for Data Science',
     description:
@@ -165,7 +243,7 @@ export async function seedCourses(dataSource: DataSource) {
     category: 'data-science',
     level: CourseLevel.INTERMEDIATE,
     price: 49.99,
-    thumbnail: 'https://example.com/python-course.jpg',
+    thumbnail: pythonThumbnailUrl,
     previewVideo: 'https://example.com/python-preview.mp4',
     status: CourseStatus.PUBLISHED,
     instructorId: '123e4567-e89b-12d3-a456-426614174001',
@@ -225,6 +303,14 @@ export async function seedCourses(dataSource: DataSource) {
   console.log('✅ Course 2: Python created');
 
   // Course 3: React Advanced Patterns
+  console.log('\n📚 Creating Course 3: React...');
+
+  const reactThumbnailUrl = await uploadThumbnail(
+    r2Service,
+    'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=450&fit=crop',
+    'Advanced React Patterns',
+  );
+
   const reactCourse = courseRepository.create({
     title: 'Advanced React Patterns',
     description:
@@ -232,7 +318,7 @@ export async function seedCourses(dataSource: DataSource) {
     category: 'web-development',
     level: CourseLevel.ADVANCED,
     price: 59.99,
-    thumbnail: 'https://example.com/react-course.jpg',
+    thumbnail: reactThumbnailUrl,
     previewVideo: 'https://example.com/react-preview.mp4',
     status: CourseStatus.PUBLISHED,
     instructorId: '123e4567-e89b-12d3-a456-426614174002',
@@ -301,8 +387,6 @@ export async function seedCourses(dataSource: DataSource) {
 
 // Run if executed directly
 if (require.main === module) {
-  const { dataSource } = require('./ormconfig');
-
   dataSource
     .initialize()
     .then(async (ds: DataSource) => {

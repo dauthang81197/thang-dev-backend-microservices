@@ -26,7 +26,7 @@ export class CourseAdminService {
     @InjectRepository(Lesson)
     private lessonRepository: Repository<Lesson>,
     private r2StorageService: R2StorageService,
-  ) { }
+  ) {}
 
   // ============ COURSE CRUD ============
 
@@ -58,7 +58,9 @@ export class CourseAdminService {
       );
     });
 
-    this.logger.log(`Found ${courses.length} courses for instructor: ${instructorId}`);
+    this.logger.log(
+      `Found ${courses.length} courses for instructor: ${instructorId}`,
+    );
     return courses;
   }
 
@@ -151,6 +153,39 @@ export class CourseAdminService {
 
     await this.courseRepository.remove(course);
     this.logger.log(`Course deleted: ${courseId}`);
+  }
+
+  async updateCourseThumbnail(
+    courseId: string,
+    thumbnail: string,
+    thumbnailKey: string,
+  ): Promise<Course> {
+    const course = await this.courseRepository.findOne({
+      where: { id: courseId },
+    });
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    // Delete old thumbnail from R2 if exists and is different
+    if (course.thumbnail && course.thumbnail !== thumbnail) {
+      try {
+        // Extract key from old thumbnail URL or use thumbnailKey if stored
+        const oldKey = course.thumbnail.split('/').slice(-2).join('/'); // Extract folder/filename
+        await this.r2StorageService.deleteFile(oldKey);
+        this.logger.log(`Old thumbnail deleted: ${oldKey}`);
+      } catch (error) {
+        this.logger.warn(`Failed to delete old thumbnail: ${error.message}`);
+      }
+    }
+
+    // Update course with new thumbnail
+    course.thumbnail = thumbnail;
+    const updatedCourse = await this.courseRepository.save(course);
+
+    this.logger.log(`Course thumbnail updated: ${courseId}`);
+    return updatedCourse;
   }
 
   // ============ SECTION CRUD ============
