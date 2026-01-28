@@ -13,7 +13,7 @@ const connectionOptions: TypeOrmModuleOptions &
   DataSourceOptions = {
   type: 'postgres',
   host: ENVIRONMENT.database.host,
-  port: ENVIRONMENT.database.port,
+  port: Number(ENVIRONMENT.database.port) || 5432,
   username: ENVIRONMENT.database.dbUser,
   password: ENVIRONMENT.database.pass,
   database: ENVIRONMENT.database.dbName,

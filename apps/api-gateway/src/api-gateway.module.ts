@@ -39,7 +39,7 @@ export const CONTROLLER_COURSE = [
         transport: Transport.REDIS,
         options: {
           host: ENVIRONMENT.redis.host,
-          port: ENVIRONMENT.redis.port,
+          port: Number(ENVIRONMENT.redis.port) || 6379,
           retryAttempts: 5,
           retryDelay: 3000,
           connectTimeout: 10000,
@@ -54,8 +54,8 @@ export const CONTROLLER_COURSE = [
         name: 'COURSE_SERVICE',
         transport: Transport.REDIS,
         options: {
-          host: ENVIRONMENT.redis.host,
-          port: ENVIRONMENT.redis.port,
+          host: ENVIRONMENT.redis.host || 'localhost',
+          port: Number(ENVIRONMENT.redis.port) || 6379,
           retryAttempts: 5,
           retryDelay: 3000,
           connectTimeout: 10000,
@@ -71,4 +71,4 @@ export const CONTROLLER_COURSE = [
   controllers: [...CONTROLLER_IDENTITY, ...CONTROLLER_COURSE],
   providers: [JwtStrategy, R2StorageService],
 })
-export class ApiGatewayModule { }
+export class ApiGatewayModule {}

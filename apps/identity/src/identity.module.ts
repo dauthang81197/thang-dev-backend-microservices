@@ -11,8 +11,8 @@ import { join } from 'path';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: [
-        join(__dirname, '..', '.env'), // chạy khi phát triển (src)
-        join(__dirname, '../../.env'), // chạy khi đã build (dist)
+        join(__dirname, '../../../.env'), // dev: apps/identity/src -> root
+        join(__dirname, '../../../../.env'), // build: dist/apps/identity/src -> root
       ],
     }),
 

@@ -18,7 +18,7 @@ export class CourseService {
     private readonly courseRepository: Repository<Course>,
     @InjectRepository(Section)
     private readonly sectionRepository: Repository<Section>,
-  ) { }
+  ) {}
 
   async findAll(query: GetCoursesQueryDto): Promise<CourseListResponseDto> {
     const { category, level, search, page = 1, limit = 10 } = query;
@@ -210,7 +210,10 @@ export class CourseService {
     const totalDuration = sections.reduce(
       (sum, section) =>
         sum +
-        section.lessons.reduce((lessonSum, lesson) => lessonSum + lesson.duration, 0),
+        section.lessons.reduce(
+          (lessonSum, lesson) => lessonSum + lesson.duration,
+          0,
+        ),
       0,
     );
 
