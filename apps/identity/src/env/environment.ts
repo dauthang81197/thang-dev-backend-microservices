@@ -1,24 +1,23 @@
 export const ENVIRONMENT = {
   database: {
-    host: '192.168.50.22',
-    port: 5432,
-    pass: 'Admin@123',
-    dbUser: 'dauthang',
-    dbName: 'identity',
+    host: process.env.POSTGRESQL_HOST || 'localhost',
+    port: process.env.POSTGRESQL_PORT || '5432',
+    pass: process.env.POSTGRESQL_IDENTITY_PASSWORD || 'Admin@123',
+    dbUser: process.env.POSTGRESQL_IDENTITY_USER || 'postgres',
+    dbName: process.env.POSTGRESQL_IDENTITY_DB || 'identity',
   },
   auth: {
-    JWT_SECRET: 'supersecret',
+    JWT_SECRET: process.env.JWT_SECRET || 'supersecret',
   },
-  redis: { host: '192.168.50.22', port: 6379 },
-};
-
-export const ENVIRONMENT_DEV = {
-  database: {
-    host: '192.168.50.22',
-    port: 5432,
-    pass: 'Admin@123',
-    dbUser: 'postgres',
-    dbName: 'identity',
+  redis: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: process.env.REDIS_PORT || '6379',
   },
-  redis: { host: '192.168.50.22', port: 6379 },
+  r2: {
+    accountId: process.env.R2_ACCOUNT_ID || '',
+    accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+    bucketName: process.env.R2_BUCKET_NAME || 'course-videos',
+    publicUrl: process.env.R2_PUBLIC_URL || '',
+  },
 };
