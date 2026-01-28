@@ -24,7 +24,7 @@ import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 @Controller('courses')
 @ApiTags('courses')
 export class CourseGatewayController {
-  constructor(@Inject('COURSE_SERVICE') private courseClient: ClientProxy) { }
+  constructor(@Inject('COURSE_SERVICE') private courseClient: ClientProxy) {}
 
   /**
    * GET /courses
@@ -164,9 +164,9 @@ export class CourseGatewayController {
     description: 'Unauthorized',
   })
   async getCourseProgress(@Param('id') courseId: string, @Request() req: any) {
-    return this.courseClient.send('courses.getProgress', {
+    return this.courseClient.send('course.progress', {
       courseId,
-      userId: req.user.id,
+      userId: req.user.userId,
     });
   }
 

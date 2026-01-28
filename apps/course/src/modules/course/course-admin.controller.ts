@@ -9,7 +9,7 @@ import { CreateLessonDto, UpdateLessonDto } from './dto/create-lesson.dto';
 export class CourseAdminController {
   private readonly logger = new Logger(CourseAdminController.name);
 
-  constructor(private readonly courseAdminService: CourseAdminService) { }
+  constructor(private readonly courseAdminService: CourseAdminService) {}
 
   // ============ COURSE CRUD ============
 
@@ -134,7 +134,9 @@ export class CourseAdminController {
       };
     },
   ) {
-    this.logger.log(`Uploading video for lesson: ${data.lessonId} (Legacy method)`);
+    this.logger.log(
+      `Uploading video for lesson: ${data.lessonId} (Legacy method)`,
+    );
     // Convert buffer if needed (microservice transport may serialize it)
     if (data.file.buffer && typeof data.file.buffer === 'object') {
       data.file.buffer = Buffer.from(Object.values(data.file.buffer));
