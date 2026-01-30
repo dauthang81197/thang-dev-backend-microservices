@@ -164,14 +164,15 @@ jobs:
             sleep 30
 
             # Check if all containers are running
-            CONTAINERS_UP=$(docker compose ps | grep -c "Up" || echo "0")
+            CONTAINERS_UP=$(docker compose ps --filter "status=running" --format json | wc -l || echo "0")
             EXPECTED_CONTAINERS=5
 
+            echo "📊 Container status:"
+            docker compose ps
+
             if [ "$CONTAINERS_UP" -ge "$EXPECTED_CONTAINERS" ]; then
-              echo "✅ Deployment successful!"
               echo ""
-              echo "📊 Container status:"
-              docker compose ps
+              echo "✅ Deployment successful!"
               echo ""
               echo "📝 Recent logs from API Gateway:"
               docker compose logs --tail=30 api-gateway
@@ -179,14 +180,23 @@ jobs:
               echo "🔍 Health check:"
               curl -f http://localhost:8000/health || echo "⚠️ Health check failed"
             else
+              echo ""
               echo "❌ Deployment failed!"
               echo "Expected $EXPECTED_CONTAINERS containers, but only $CONTAINERS_UP are running"
               echo ""
-              echo "📊 Container status:"
-              docker compose ps
+              echo "❌ Detailed logs for each service:"
               echo ""
-              echo "❌ Error logs:"
-              docker compose logs --tail=100
+              echo "=== REDIS LOGS ==="
+              docker compose logs --tail=50 redis
+              echo ""
+              echo "=== IDENTITY SERVICE LOGS ==="
+              docker compose logs --tail=100 identity-service
+              echo ""
+              echo "=== COURSE SERVICE LOGS ==="
+              docker compose logs --tail=100 course-service
+              echo ""
+              echo "=== API GATEWAY LOGS ==="
+              docker compose logs --tail=100 api-gateway
               exit 1
             fi
           ENDSSH
