@@ -28,4 +28,4 @@ COPY --from=production-deps /app/node_modules ./node_modules
 
 EXPOSE 8000
 
-CMD ["node", "dist/apps/api-gateway/main.js"]
+CMD ["node", "dist/apps/api-gateway/apps/api-gateway/src/main.js"]

@@ -28,4 +28,4 @@ COPY --from=production-deps /app/node_modules ./node_modules
 
 EXPOSE 3003
 
-CMD ["node", "dist/apps/course/main.js"]
+CMD ["node", "dist/apps/course/apps/course/src/main.js"]

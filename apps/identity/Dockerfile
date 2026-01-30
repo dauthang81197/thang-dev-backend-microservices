@@ -28,4 +28,4 @@ COPY --from=production-deps /app/node_modules ./node_modules
 
 EXPOSE 3002
 
-CMD ["node", "dist/apps/identity/main.js"]
+CMD ["node", "dist/apps/identity/apps/identity/src/main.js"]
