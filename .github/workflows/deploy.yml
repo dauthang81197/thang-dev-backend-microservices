@@ -71,6 +71,37 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ env.EC2_HOST }} >> ~/.ssh/known_hosts
 
+      - name: Create .env file
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          cat > .env << 'EOF'
+          NODE_ENV=production
+
+          # Database
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_NAME=${{ secrets.DB_NAME }}
+          DB_PORT=5432
+
+          # Redis
+          REDIS_PORT=6379
+
+          # JWT
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_EXPIRES_IN=7d
+
+          # Cloudflare R2
+          R2_ACCOUNT_ID=${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY=${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME=${{ secrets.R2_BUCKET_NAME }}
+          R2_PUBLIC_URL=${{ secrets.R2_PUBLIC_URL }}
+
+          # API Gateway
+          API_PORT=8000
+          CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
+          EOF
+
       - name: Copy Docker images to EC2
         if: ${{ github.event_name == 'push' }}
         run: |
@@ -83,6 +114,7 @@ jobs:
             identity-service.tar.gz \
             course-service.tar.gz \
             docker-compose.yml \
+            .env \
             ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:~/course-backend/
 
       - name: Deploy on EC2
@@ -103,35 +135,6 @@ jobs:
             
             # Clean up tar files
             rm -f *.tar.gz
-
-            # Create .env file
-            cat > .env << 'EOF'
-            NODE_ENV=production
-            
-            # Database
-            DB_USER=${{ secrets.DB_USER }}
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            DB_NAME=${{ secrets.DB_NAME }}
-            DB_PORT=5432
-            
-            # Redis
-            REDIS_PORT=6379
-            
-            # JWT
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
-            JWT_EXPIRES_IN=7d
-            
-            # Cloudflare R2
-            R2_ACCOUNT_ID=${{ secrets.R2_ACCOUNT_ID }}
-            R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }}
-            R2_SECRET_ACCESS_KEY=${{ secrets.R2_SECRET_ACCESS_KEY }}
-            R2_BUCKET_NAME=${{ secrets.R2_BUCKET_NAME }}
-            R2_PUBLIC_URL=${{ secrets.R2_PUBLIC_URL }}
-            
-            # API Gateway
-            API_PORT=8000
-            CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
-            EOF
 
             # Stop old containers
             echo "🛑 Stopping old containers..."
