@@ -23,6 +23,6 @@ WORKDIR /app
 COPY --from=builder /app/dist/apps/api-gateway ./dist
 COPY --from=production-deps /app/node_modules ./node_modules
 
-EXPOSE 3001
+EXPOSE 8000
 
 CMD ["node", "dist/main.js"]

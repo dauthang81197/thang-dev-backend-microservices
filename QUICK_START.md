@@ -87,13 +87,13 @@ docker compose logs -f api-gateway
 
 ```bash
 # Health check
-curl http://your-ec2-ip:3001/health
+curl http://your-ec2-ip:8000/health
 
 # Swagger docs
-http://your-ec2-ip:3001/api/docs
+http://your-ec2-ip:8000/api/docs
 
 # Test endpoint
-curl http://your-ec2-ip:3001/api/courses
+curl http://your-ec2-ip:8000/api/courses
 ```
 
 ---
@@ -145,7 +145,7 @@ docker compose down && docker compose up -d
 # Check firewall
 sudo ufw status
 
-# Allow port 3001
+# Allow port 8000
 sudo ufw allow 3001/tcp
 ```
 
@@ -175,7 +175,7 @@ docker compose exec course-service npm run typeorm:course:migration:run
 GitHub Actions → Build Images → Copy to EC2 → Deploy
                                                  ↓
                                     ┌──────────────────┐
-                                    │   API Gateway    │ :3001
+                                    │   API Gateway    │ :8000
                                     │  (Public Access) │
                                     └────────┬─────────┘
                                              │
