@@ -23,9 +23,9 @@ WORKDIR /app
 # Install curl for health checks
 RUN apk add --no-cache curl
 
-COPY --from=builder /app/dist/apps/identity ./dist
+COPY --from=builder /app/dist ./dist
 COPY --from=production-deps /app/node_modules ./node_modules
 
 EXPOSE 3002
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/apps/identity/main.js"]
