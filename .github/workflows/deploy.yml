@@ -73,61 +73,61 @@ jobs:
 
       - name: Copy Docker images to EC2
         if: ${{ github.event_name == 'push' }}
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ env.EC2_HOST }}
-          username: ${{ env.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: 'api-gateway.tar.gz,identity-service.tar.gz,course-service.tar.gz,docker-compose.yml'
-          target: '/home/${{ env.EC2_USER }}/course-backend'
+        run: |
+          # Create target directory on EC2
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} "mkdir -p ~/course-backend"
+
+          # Copy all files
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            api-gateway.tar.gz \
+            identity-service.tar.gz \
+            course-service.tar.gz \
+            docker-compose.yml \
+            ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:~/course-backend/
 
       - name: Deploy on EC2
         if: ${{ github.event_name == 'push' }}
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ env.EC2_HOST }}
-          username: ${{ env.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /home/${{ env.EC2_USER }}/course-backend
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} << 'ENDSSH'
+            cd ~/course-backend
 
             # Load Docker images
             echo "📦 Loading API Gateway image..."
             docker load < api-gateway.tar.gz
-
+            
             echo "📦 Loading Identity Service image..."
             docker load < identity-service.tar.gz
-
+            
             echo "📦 Loading Course Service image..."
             docker load < course-service.tar.gz
-
+            
             # Clean up tar files
             rm -f *.tar.gz
 
             # Create .env file
-            cat > .env << EOF
+            cat > .env << 'EOF'
             NODE_ENV=production
-
+            
             # Database
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             DB_NAME=${{ secrets.DB_NAME }}
             DB_PORT=5432
-
+            
             # Redis
             REDIS_PORT=6379
-
+            
             # JWT
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             JWT_EXPIRES_IN=7d
-
+            
             # Cloudflare R2
             R2_ACCOUNT_ID=${{ secrets.R2_ACCOUNT_ID }}
             R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }}
             R2_SECRET_ACCESS_KEY=${{ secrets.R2_SECRET_ACCESS_KEY }}
             R2_BUCKET_NAME=${{ secrets.R2_BUCKET_NAME }}
             R2_PUBLIC_URL=${{ secrets.R2_PUBLIC_URL }}
-
+            
             # API Gateway
             API_PORT=3001
             CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
@@ -148,24 +148,21 @@ jobs:
             # Show status
             echo "📊 Container status:"
             docker compose ps
+          ENDSSH
 
       - name: Verify deployment
         if: ${{ github.event_name == 'push' }}
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ env.EC2_HOST }}
-          username: ${{ env.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd /home/${{ env.EC2_USER }}/course-backend
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} << 'ENDSSH'
+            cd ~/course-backend
 
             # Wait for services to be ready
             echo "⏳ Waiting for services to start..."
             sleep 30
 
             # Check if all containers are running
-            CONTAINERS_UP=$(docker compose ps | grep -c "Up")
-            EXPECTED_CONTAINERS=5  # postgres, redis, identity, course, api-gateway
+            CONTAINERS_UP=$(docker compose ps | grep -c "Up" || echo "0")
+            EXPECTED_CONTAINERS=5
 
             if [ "$CONTAINERS_UP" -ge "$EXPECTED_CONTAINERS" ]; then
               echo "✅ Deployment successful!"
@@ -189,6 +186,7 @@ jobs:
               docker compose logs --tail=100
               exit 1
             fi
+          ENDSSH
 
       - name: Notify deployment status
         if: always()
