@@ -18,7 +18,7 @@ export class CourseController {
     private readonly courseService: CourseService,
     private readonly enrollmentService: EnrollmentService,
     private readonly progressService: ProgressService,
-  ) { }
+  ) {}
 
   /**
    * Message Pattern: courses.findAll

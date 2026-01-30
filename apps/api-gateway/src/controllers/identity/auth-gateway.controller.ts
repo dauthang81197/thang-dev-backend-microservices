@@ -30,7 +30,7 @@ import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 @Controller('auth')
 @ApiTags('auth')
 export class AuthGatewayController {
-  constructor(@Inject('IDENTITY_SERVICE') private usersClient: ClientProxy) { }
+  constructor(@Inject('IDENTITY_SERVICE') private usersClient: ClientProxy) {}
 
   @Post('/register')
   @HttpCode(HttpStatus.CREATED)

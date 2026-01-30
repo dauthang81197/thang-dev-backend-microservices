@@ -61,7 +61,6 @@ export class CourseAdminController {
     return this.courseAdminService.updateCourseThumbnail(
       data.courseId,
       data.thumbnail,
-      data.thumbnailKey,
     );
   }
 

@@ -11,7 +11,6 @@ import {
   UploadedFile,
   ParseFilePipe,
   MaxFileSizeValidator,
-  FileTypeValidator,
   Inject,
   Request,
   BadRequestException,
