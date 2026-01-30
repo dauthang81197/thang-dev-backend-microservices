@@ -20,6 +20,9 @@ RUN npm ci --omit=dev && npm cache clean --force
 FROM node:22-alpine
 WORKDIR /app
 
+# Install curl for health checks
+RUN apk add --no-cache curl
+
 COPY --from=builder /app/dist/apps/api-gateway ./dist
 COPY --from=production-deps /app/node_modules ./node_modules
 
