@@ -55,7 +55,41 @@ jobs:
       - name: Build Identity Service Image
         run: |
           docker build -f apps/identity/Dockerfile -t course-identity:latest .
+
+      - name: Debug Identity Build Output
+        run: |
+          echo "🔍 Checking builder stage output..."
+          docker build -f apps/identity/Dockerfile --target builder -t identity-builder:debug .
+          echo ""
+          echo "📁 Contents of /app in builder stage:"
+          docker run --rm identity-builder:debug ls -la /app/
+          echo ""
+          echo "📁 Contents of /app/dist in builder stage:"
+          docker run --rm identity-builder:debug ls -la /app/dist/ || echo "❌ No dist directory"
+          echo ""
+          echo "📁 Contents of /app/dist/apps in builder stage:"
+          docker run --rm identity-builder:debug ls -la /app/dist/apps/ || echo "❌ No dist/apps directory"
+          echo ""
+          echo "🔍 Finding all main.js files in builder:"
+          docker run --rm identity-builder:debug find /app -name "main.js" 2>/dev/null || echo "❌ No main.js found"
+
+      - name: Save Identity Service Image
+        run: |
           docker save course-identity:latest | gzip > identity-service.tar.gz
+
+      - name: Debug Identity Image Structure
+        run: |
+          echo "🔍 Checking Identity image file structure..."
+          docker run --rm course-identity:latest ls -la /app/
+          echo ""
+          echo "🔍 Checking dist directory..."
+          docker run --rm course-identity:latest ls -la /app/dist/ || echo "❌ No /app/dist directory"
+          echo ""
+          echo "🔍 Checking dist/apps directory..."
+          docker run --rm course-identity:latest ls -la /app/dist/apps/ || echo "❌ No /app/dist/apps directory"
+          echo ""
+          echo "🔍 Checking for main.js..."
+          docker run --rm course-identity:latest find /app -name "main.js" || echo "❌ No main.js found"
 
       - name: Build Course Service Image
         run: |
@@ -123,6 +157,14 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} << 'ENDSSH'
             cd ~/course-backend
 
+            # Stop old containers first
+            echo "🛑 Stopping old containers..."
+            docker compose down
+
+            # Remove old images to ensure clean load
+            echo "🗑️ Removing old images..."
+            docker rmi course-api-gateway:latest course-identity:latest course-service:latest 2>/dev/null || true
+
             # Load Docker images
             echo "📦 Loading API Gateway image..."
             docker load < api-gateway.tar.gz
@@ -135,10 +177,6 @@ jobs:
             
             # Clean up tar files
             rm -f *.tar.gz
-
-            # Stop old containers
-            echo "🛑 Stopping old containers..."
-            docker compose down
 
             # Start new containers
             echo "🚀 Starting new containers..."
