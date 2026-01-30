@@ -41,6 +41,21 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 .env.local
+.env.production
+
+# Docker
+*.tar.gz
+image.tar.gz
+api-gateway.tar.gz
+identity-service.tar.gz
+course-service.tar.gz
+
+# Backups
+backups/
+*.sql
+*.sql.gz
+*.rdb
+dump.rdb
 
 # temp directory
 .temp
