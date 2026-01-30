@@ -28,7 +28,7 @@ API endpoint để upload thumbnail/ảnh đại diện cho course lên Cloudfla
 ## cURL Example
 
 ```bash
-curl -X POST "http://localhost:3001/api/admin/courses/123e4567-e89b-12d3-a456-426614174000/thumbnail" \
+curl -X POST "http://localhost:8000/api/admin/courses/123e4567-e89b-12d3-a456-426614174000/thumbnail" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -F "file=@/path/to/image.jpg"
 ```
@@ -123,7 +123,7 @@ curl -X POST "http://localhost:3001/api/admin/courses/123e4567-e89b-12d3-a456-42
 
 1. **Create new request:**
    - Method: POST
-   - URL: `http://localhost:3001/api/admin/courses/{courseId}/thumbnail`
+   - URL: `http://localhost:8000/api/admin/courses/{courseId}/thumbnail`
 
 2. **Set Authorization:**
    - Type: Bearer Token
@@ -190,6 +190,6 @@ Return course with new thumbnail URL
 
 API này được document đầy đủ trong Swagger UI:
 
-**URL:** `http://localhost:3001/api/docs`
+**URL:** `http://localhost:8000/api/docs`
 
 Navigate to: **Course Admin** → **Upload thumbnail image for course to R2**

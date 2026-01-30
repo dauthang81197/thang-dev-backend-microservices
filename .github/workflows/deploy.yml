@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  EC2_HOST: ${{ secrets.EC2_HOST_BACKEND }}
+  EC2_HOST: ${{ secrets.EC2_HOST }}
   EC2_USER: ${{ secrets.EC2_USER }}
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
 
@@ -129,7 +129,7 @@ jobs:
             R2_PUBLIC_URL=${{ secrets.R2_PUBLIC_URL }}
             
             # API Gateway
-            API_PORT=3001
+            API_PORT=8000
             CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
             EOF
 
@@ -174,7 +174,7 @@ jobs:
               docker compose logs --tail=30 api-gateway
               echo ""
               echo "🔍 Health check:"
-              curl -f http://localhost:3001/health || echo "⚠️ Health check failed"
+              curl -f http://localhost:8000/health || echo "⚠️ Health check failed"
             else
               echo "❌ Deployment failed!"
               echo "Expected $EXPECTED_CONTAINERS containers, but only $CONTAINERS_UP are running"

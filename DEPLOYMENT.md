@@ -8,7 +8,7 @@ Hệ thống backend bao gồm 5 services chính:
 2. **Redis** - Message broker cho microservices communication
 3. **Identity Service** (Port 3002) - Authentication & User Management
 4. **Course Service** (Port 3003) - Course, Section, Lesson Management + R2 Storage
-5. **API Gateway** (Port 3001) - REST API endpoints, routing, JWT validation
+5. **API Gateway** (Port 8000) - REST API endpoints, routing, JWT validation
 
 ## 🔧 Prerequisites
 
@@ -107,7 +107,7 @@ docker compose logs -f
 
 ```bash
 # Check API Gateway
-curl http://localhost:3001/health
+curl http://localhost:8000/health
 
 # Check all containers
 docker compose ps
@@ -220,19 +220,19 @@ docker image prune -a -f
 ### Base URL
 
 ```
-http://your-ec2-ip:3001
+http://your-ec2-ip:8000
 ```
 
 ### Health Check
 
 ```bash
-curl http://your-ec2-ip:3001/health
+curl http://your-ec2-ip:8000/health
 ```
 
 ### Swagger Documentation
 
 ```
-http://your-ec2-ip:3001/api/docs
+http://your-ec2-ip:8000/api/docs
 ```
 
 ### Main Endpoints
