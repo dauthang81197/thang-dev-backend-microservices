@@ -7,14 +7,21 @@ COPY nest-cli.json ./
 COPY apps/identity ./apps/identity
 COPY libs ./libs
 
-RUN npm ci --only=production && npm cache clean --force
+# Install all dependencies (including dev) for build
+RUN npm ci && npm cache clean --force
 RUN npm run build identity
+
+# Production stage - install only production dependencies
+FROM node:22-alpine AS production-deps
+WORKDIR /app
+COPY package*.json .
+RUN npm ci --omit=dev && npm cache clean --force
 
 FROM node:22-alpine
 WORKDIR /app
 
 COPY --from=builder /app/dist/apps/identity ./dist
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=production-deps /app/node_modules ./node_modules
 
 EXPOSE 3002
 
