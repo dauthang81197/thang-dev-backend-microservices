@@ -10,7 +10,7 @@ import { Controller } from '@nestjs/common';
 
 @Controller()
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @MessagePattern(MessagePatternEnum.IDENTITY_AUTH_REGISTER)
   async register(registerDto: RegisterDto) {

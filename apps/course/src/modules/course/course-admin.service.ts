@@ -158,7 +158,6 @@ export class CourseAdminService {
   async updateCourseThumbnail(
     courseId: string,
     thumbnail: string,
-    thumbnailKey: string,
   ): Promise<Course> {
     const course = await this.courseRepository.findOne({
       where: { id: courseId },
