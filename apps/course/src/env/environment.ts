@@ -1,6 +1,6 @@
 export const ENVIRONMENT = {
   database: {
-    host: process.env.DB_HOST || 'localhost',
+    host: process.env.DB_HOST || '43.205.220.161',
     port: parseInt(process.env.DB_PORT || '5432'),
     pass: process.env.DB_PASSWORD || 'Admin@123',
     dbUser: process.env.DB_USER || 'postgres',
@@ -10,7 +10,7 @@ export const ENVIRONMENT = {
     JWT_SECRET: process.env.JWT_SECRET || 'supersecret',
   },
   redis: {
-    host: process.env.REDIS_HOST || 'localhost',
+    host: process.env.REDIS_HOST || '43.205.220.161',
     port: parseInt(process.env.REDIS_PORT || '6379'),
   },
   r2: {

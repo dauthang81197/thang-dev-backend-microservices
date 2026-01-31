@@ -1,3 +1,18 @@
+// Load .env file FIRST before any imports
+import * as dotenv from 'dotenv';
+import { resolve } from 'path';
+
+const envPath = resolve(process.cwd(), '.env');
+console.log('[Course Service] Loading .env from:', envPath);
+const result = dotenv.config({ path: envPath });
+
+if (result.error) {
+  console.error('[Course Service] Failed to load .env:', result.error.message);
+} else {
+  console.log('[Course Service] .env loaded successfully');
+  console.log('[Course Service] JWT_SECRET from process.env:', process.env.JWT_SECRET ? `${process.env.JWT_SECRET.substring(0, 5)}***` : 'UNDEFINED');
+}
+
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { CourseModule } from './course.module';
@@ -7,6 +22,7 @@ import {
 } from 'typeorm-transactional';
 import { connectionOptions } from './database/ormconfig';
 import { ENVIRONMENT } from './env/environment';
+import { LoggingInterceptor } from '@app/common';
 
 async function bootstrap() {
   initializeTransactionalContext({ storageDriver: StorageDriver.AUTO });
@@ -38,6 +54,9 @@ async function bootstrap() {
       },
     },
   );
+
+  // Global Logging Interceptor
+  app.useGlobalInterceptors(new LoggingInterceptor());
 
   await app.listen();
 

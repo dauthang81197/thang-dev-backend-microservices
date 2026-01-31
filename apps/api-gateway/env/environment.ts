@@ -11,8 +11,8 @@ export const ENVIRONMENT = {
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   },
   redis: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT || 6379,
+    host: process.env.REDIS_HOST || '43.205.220.161',
+    port: parseInt(process.env.REDIS_PORT || '6379'),
   },
   r2: {
     accountId: process.env.R2_ACCOUNT_ID || '',
