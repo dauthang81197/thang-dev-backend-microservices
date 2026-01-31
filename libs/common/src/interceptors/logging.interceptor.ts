@@ -13,6 +13,12 @@ export class LoggingInterceptor implements NestInterceptor {
     private readonly logger = new Logger('HTTP');
 
     intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+        const contextType = context.getType();
+
+        // Only log HTTP requests, skip microservice messages
+        if (contextType !== 'http') {
+            return next.handle();
+        }
         const request = context.switchToHttp().getRequest();
         const response = context.switchToHttp().getResponse();
         const { method, url, ip, body } = request;
