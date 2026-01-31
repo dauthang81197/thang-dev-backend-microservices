@@ -1,10 +1,10 @@
 export const ENVIRONMENT = {
   database: {
-    host: process.env.POSTGRESQL_HOST || 'localhost',
-    port: parseInt(process.env.POSTGRESQL_PORT || '5432'),
-    pass: process.env.POSTGRESQL_PASSWORD || 'Admin@123',
-    dbUser: process.env.POSTGRESQL_USER || 'postgres',
-    dbName: process.env.POSTGRESQL_DB || 'course',
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '5432'),
+    pass: process.env.DB_PASSWORD || 'Admin@123',
+    dbUser: process.env.DB_USER || 'postgres',
+    dbName: process.env.DB_NAME_COURSE || 'course',
   },
   auth: {
     JWT_SECRET: process.env.JWT_SECRET || 'supersecret',
