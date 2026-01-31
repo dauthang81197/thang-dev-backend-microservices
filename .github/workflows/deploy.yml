@@ -1,18 +1,15 @@
-name: Deploy Backend Microservices to EC2
+name: Deploy Backend Microservices to EC2 (Production)
 
 on:
   push:
     branches:
-      - dev
-  pull_request:
-    branches:
-      - dev
+      - main
+      - master
   workflow_dispatch:
 
 env:
   EC2_HOST: ${{ secrets.EC2_HOST }}
   EC2_USER: ${{ secrets.EC2_USER }}
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
 
 jobs:
   build-and-deploy:
@@ -40,13 +37,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub (Optional)
-        if: ${{ env.DOCKER_USERNAME != '' }}
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
       - name: Build API Gateway Image
         run: |
           docker build -f apps/api-gateway/Dockerfile -t course-api-gateway:latest .
@@ -55,113 +45,52 @@ jobs:
       - name: Build Identity Service Image
         run: |
           docker build -f apps/identity/Dockerfile -t course-identity:latest .
-
-      - name: Debug Identity Build Output
-        run: |
-          echo "🔍 Checking builder stage output..."
-          docker build -f apps/identity/Dockerfile --target builder -t identity-builder:debug .
-          echo ""
-          echo "📁 Contents of /app in builder stage:"
-          docker run --rm identity-builder:debug ls -la /app/
-          echo ""
-          echo "📁 Contents of /app/dist in builder stage:"
-          docker run --rm identity-builder:debug ls -la /app/dist/ || echo "❌ No dist directory"
-          echo ""
-          echo "📁 Contents of /app/dist/apps in builder stage:"
-          docker run --rm identity-builder:debug ls -la /app/dist/apps/ || echo "❌ No dist/apps directory"
-          echo ""
-          echo "🔍 Finding all main.js files in builder:"
-          docker run --rm identity-builder:debug find /app -name "main.js" 2>/dev/null || echo "❌ No main.js found"
-
-      - name: Save Identity Service Image
-        run: |
           docker save course-identity:latest | gzip > identity-service.tar.gz
-
-      - name: Debug Identity Image Structure
-        run: |
-          echo "🔍 Checking Identity image file structure..."
-          docker run --rm course-identity:latest ls -la /app/
-          echo ""
-          echo "🔍 Checking dist directory..."
-          docker run --rm course-identity:latest ls -la /app/dist/ || echo "❌ No /app/dist directory"
-          echo ""
-          echo "🔍 Checking dist/apps directory..."
-          docker run --rm course-identity:latest ls -la /app/dist/apps/ || echo "❌ No /app/dist/apps directory"
-          echo ""
-          echo "🔍 Checking for main.js..."
-          docker run --rm course-identity:latest find /app -name "main.js" || echo "❌ No main.js found"
 
       - name: Build Course Service Image
         run: |
           docker build -f apps/course/Dockerfile -t course-service:latest .
           docker save course-service:latest | gzip > course-service.tar.gz
 
-      # -------- DEPLOY (CHỈ KHI PUSH) --------
+      # -------- DEPLOY TO EC2 --------
       - name: Prepare SSH key
-        if: ${{ github.event_name == 'push' }}
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ env.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Create .env file
-        if: ${{ github.event_name == 'push' }}
-        run: |
-          cat > .env << 'EOF'
-          NODE_ENV=production
-
-          # Database
-          DB_USER=${{ secrets.DB_USER }}
-          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          DB_NAME=${{ secrets.DB_NAME }}
-          DB_PORT=5432
-
-          # Redis
-          REDIS_PORT=6379
-
-          # JWT
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          JWT_EXPIRES_IN=7d
-
-          # Cloudflare R2
-          R2_ACCOUNT_ID=${{ secrets.R2_ACCOUNT_ID }}
-          R2_ACCESS_KEY_ID=${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY=${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_BUCKET_NAME=${{ secrets.R2_BUCKET_NAME }}
-          R2_PUBLIC_URL=${{ secrets.R2_PUBLIC_URL }}
-
-          # API Gateway
-          API_PORT=8000
-          CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
-          EOF
-
-      - name: Copy Docker images to EC2
-        if: ${{ github.event_name == 'push' }}
+      - name: Copy files to EC2
         run: |
           # Create target directory on EC2
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} "mkdir -p ~/course-backend"
 
-          # Copy all files
+          # Copy Docker images and docker-compose.prod.yml
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
             api-gateway.tar.gz \
             identity-service.tar.gz \
             course-service.tar.gz \
-            docker-compose.yml \
-            .env \
+            docker-compose.prod.yml \
             ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:~/course-backend/
 
       - name: Deploy on EC2
-        if: ${{ github.event_name == 'push' }}
         run: |
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} << 'ENDSSH'
             cd ~/course-backend
 
-            # Stop old containers first
-            echo "🛑 Stopping old containers..."
-            docker compose down
+            # Kiểm tra .env.production file
+            if [ ! -f .env.production ]; then
+              echo "⚠️ WARNING: .env.production file not found!"
+              echo "Please create .env.production file on EC2 with all required environment variables."
+              echo "See .env.production.example for reference."
+              exit 1
+            fi
 
-            # Remove old images to ensure clean load
+            # Stop old containers
+            echo "🛑 Stopping old containers..."
+            docker compose -f docker-compose.prod.yml down
+
+            # Remove old images
             echo "🗑️ Removing old images..."
             docker rmi course-api-gateway:latest course-identity:latest course-service:latest 2>/dev/null || true
 
@@ -178,9 +107,9 @@ jobs:
             # Clean up tar files
             rm -f *.tar.gz
 
-            # Start new containers
-            echo "🚀 Starting new containers..."
-            docker compose up -d
+            # Start new containers with production compose file
+            echo "🚀 Starting containers with docker-compose.prod.yml..."
+            docker compose -f docker-compose.prod.yml --env-file .env.production up -d
 
             # Clean up old images
             echo "🧹 Cleaning up old images..."
@@ -188,32 +117,31 @@ jobs:
 
             # Show status
             echo "📊 Container status:"
-            docker compose ps
+            docker compose -f docker-compose.prod.yml ps
           ENDSSH
 
       - name: Verify deployment
-        if: ${{ github.event_name == 'push' }}
         run: |
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} << 'ENDSSH'
             cd ~/course-backend
 
-            # Wait for services to be ready
+            # Wait for services to start
             echo "⏳ Waiting for services to start..."
             sleep 30
 
-            # Check if all containers are running
-            CONTAINERS_UP=$(docker compose ps --filter "status=running" --format json | wc -l || echo "0")
-            EXPECTED_CONTAINERS=5
+            # Check running containers
+            CONTAINERS_UP=$(docker compose -f docker-compose.prod.yml ps --filter "status=running" --format json 2>/dev/null | wc -l || echo "0")
+            EXPECTED_CONTAINERS=3
 
             echo "📊 Container status:"
-            docker compose ps
+            docker compose -f docker-compose.prod.yml ps
 
             if [ "$CONTAINERS_UP" -ge "$EXPECTED_CONTAINERS" ]; then
               echo ""
-              echo "✅ Deployment successful!"
+              echo "✅ Deployment successful! All $CONTAINERS_UP/$EXPECTED_CONTAINERS containers are running."
               echo ""
               echo "📝 Recent logs from API Gateway:"
-              docker compose logs --tail=30 api-gateway
+              docker compose -f docker-compose.prod.yml logs --tail=20 api-gateway
               echo ""
               echo "🔍 Health check:"
               curl -f http://localhost:8000/health || echo "⚠️ Health check failed"
@@ -224,26 +152,29 @@ jobs:
               echo ""
               echo "❌ Detailed logs for each service:"
               echo ""
-              echo "=== REDIS LOGS ==="
-              docker compose logs --tail=50 redis
-              echo ""
               echo "=== IDENTITY SERVICE LOGS ==="
-              docker compose logs --tail=100 identity-service
+              docker compose -f docker-compose.prod.yml logs --tail=50 identity-service
               echo ""
               echo "=== COURSE SERVICE LOGS ==="
-              docker compose logs --tail=100 course-service
+              docker compose -f docker-compose.prod.yml logs --tail=50 course-service
               echo ""
               echo "=== API GATEWAY LOGS ==="
-              docker compose logs --tail=100 api-gateway
+              docker compose -f docker-compose.prod.yml logs --tail=50 api-gateway
               exit 1
             fi
           ENDSSH
 
-      - name: Notify deployment status
+      - name: Deployment Summary
         if: always()
         run: |
           if [ "${{ job.status }}" == "success" ]; then
             echo "✅ Deployment completed successfully!"
+            echo ""
+            echo "🌐 Services are running on EC2:"
+            echo "   - API Gateway: http://${{ env.EC2_HOST }}:8000"
+            echo "   - Identity Service: http://${{ env.EC2_HOST }}:3002"
+            echo "   - Course Service: http://${{ env.EC2_HOST }}:3003"
           else
             echo "❌ Deployment failed!"
+            echo "Please check the logs above for more details."
           fi
