@@ -1,21 +1,3 @@
-// Load .env file FIRST before any imports
-import { config } from 'dotenv';
-import { join } from 'path';
-
-// Load from project root (works in both dev and build mode)
-const envPath = join(process.cwd(), '.env');
-console.log('[ENV] Attempting to load .env from:', envPath);
-const result = config({ path: envPath, debug: true });
-if (result.error) {
-  console.error('[ENV] Error loading .env file:', result.error);
-} else {
-  console.log('[ENV] Successfully loaded .env file');
-  console.log(
-    '[ENV] Loaded variables:',
-    Object.keys(result.parsed || {}).join(', '),
-  );
-}
-
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { CourseModule } from './course.module';
@@ -56,19 +38,15 @@ async function bootstrap() {
       },
     },
   );
-  console.log('Loaded entities:', connectionOptions.entities);
+
   await app.listen();
-  console.log('ENV POSTGRESQL_HOST:', process.env.POSTGRESQL_HOST);
-  console.log('ENV POSTGRESQL_PORT:', process.env.POSTGRESQL_PORT);
-  console.log('ENV POSTGRESQL_DB:', process.env.POSTGRESQL_DB);
-  console.log('ENV POSTGRESQL_USER:', process.env.POSTGRESQL_USER);
-  console.log('ENVIRONMENT.database.host:', ENVIRONMENT.database.host);
-  console.log('ENVIRONMENT.database.port:', ENVIRONMENT.database.port);
-  console.log('Course Microservice is running...');
-  console.log(
-    'Redis connected at:',
-    `${ENVIRONMENT.redis.host}:${ENVIRONMENT.redis.port}`,
-  );
+
+  console.log('[Course Service] Microservice is running');
+  console.log('[Course Service] Environment:', process.env.NODE_ENV || 'development');
+  console.log('[Course Service] Database:', `${ENVIRONMENT.database.host}:${ENVIRONMENT.database.port}/${ENVIRONMENT.database.dbName}`);
+  console.log('[Course Service] Redis:', `${ENVIRONMENT.redis.host}:${ENVIRONMENT.redis.port}`);
+  console.log('[Course Service] Port:', process.env.PORT || '3003');
+  console.log('[Course Service] R2 Bucket:', ENVIRONMENT.r2.bucketName);
 }
 
 bootstrap();
