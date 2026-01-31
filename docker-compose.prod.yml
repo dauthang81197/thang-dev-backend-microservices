@@ -7,6 +7,8 @@ services:
     build:
       context: .
       dockerfile: apps/identity/Dockerfile
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
       PORT: 3002
@@ -22,10 +24,7 @@ services:
       # JWT
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
-    ports:
-      - "3002:3002"
-    networks:
-      - course-network
+    network_mode: host
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
       interval: 30s
@@ -41,6 +40,8 @@ services:
     build:
       context: .
       dockerfile: apps/course/Dockerfile
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
       PORT: 3003
@@ -49,7 +50,7 @@ services:
       DB_PORT: ${DB_PORT}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME_COURSE}
+      DB_NAME_COURSE: ${DB_NAME_COURSE}
       # Redis - sẽ connect đến Redis đã cài trên EC2
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
@@ -59,10 +60,7 @@ services:
       R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
       R2_BUCKET_NAME: ${R2_BUCKET_NAME}
       R2_PUBLIC_URL: ${R2_PUBLIC_URL}
-    ports:
-      - "3003:3003"
-    networks:
-      - course-network
+    network_mode: host
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
       interval: 30s
@@ -78,6 +76,8 @@ services:
     build:
       context: .
       dockerfile: apps/api-gateway/Dockerfile
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
       PORT: 8000
@@ -95,10 +95,7 @@ services:
       R2_PUBLIC_URL: ${R2_PUBLIC_URL}
       # CORS
       CORS_ORIGIN: ${CORS_ORIGIN}
-    ports:
-      - "8000:8000"
-    networks:
-      - course-network
+    network_mode: host
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
