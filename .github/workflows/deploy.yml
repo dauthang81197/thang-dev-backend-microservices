@@ -111,12 +111,12 @@ jobs:
           # Create target directory on EC2
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} "mkdir -p ~/course-backend"
 
-          # Copy Docker images and docker-compose file
+          # Copy Docker images and docker-compose.prod.yml
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
             api-gateway.tar.gz \
             identity-service.tar.gz \
             course-service.tar.gz \
-            docker-compose.yml \
+            docker-compose.prod.yml \
             ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:~/course-backend/
 
       - name: Deploy on EC2
@@ -129,13 +129,13 @@ jobs:
             if [ ! -f .env ]; then
               echo "⚠️ WARNING: .env file not found!"
               echo "Please create .env file on EC2 with all required environment variables."
-              echo "See .env.example for reference."
+              echo "See .env.production.example for reference."
               exit 1
             fi
 
             # Stop old containers first
             echo "🛑 Stopping old containers..."
-            docker compose down
+            docker compose -f docker-compose.prod.yml down
 
             # Remove old images to ensure clean load
             echo "🗑️ Removing old images..."
@@ -154,9 +154,9 @@ jobs:
             # Clean up tar files
             rm -f *.tar.gz
 
-            # Start new containers
-            echo "🚀 Starting new containers..."
-            docker compose up -d
+            # Start new containers with docker-compose.prod.yml
+            echo "🚀 Starting containers with docker-compose.prod.yml..."
+            docker compose -f docker-compose.prod.yml up -d
 
             # Clean up old images
             echo "🧹 Cleaning up old images..."
@@ -164,7 +164,7 @@ jobs:
 
             # Show status
             echo "📊 Container status:"
-            docker compose ps
+            docker compose -f docker-compose.prod.yml ps
           ENDSSH
 
       - name: Verify deployment
@@ -177,19 +177,19 @@ jobs:
             echo "⏳ Waiting for services to start..."
             sleep 30
 
-            # Check if all containers are running
-            CONTAINERS_UP=$(docker compose ps --filter "status=running" --format json | wc -l || echo "0")
-            EXPECTED_CONTAINERS=5
+            # Check if all containers are running (3 microservices only)
+            CONTAINERS_UP=$(docker compose -f docker-compose.prod.yml ps --filter "status=running" --format json 2>/dev/null | wc -l || echo "0")
+            EXPECTED_CONTAINERS=3
 
             echo "📊 Container status:"
-            docker compose ps
+            docker compose -f docker-compose.prod.yml ps
 
             if [ "$CONTAINERS_UP" -ge "$EXPECTED_CONTAINERS" ]; then
               echo ""
-              echo "✅ Deployment successful!"
+              echo "✅ Deployment successful! All $CONTAINERS_UP/$EXPECTED_CONTAINERS containers are running."
               echo ""
               echo "📝 Recent logs from API Gateway:"
-              docker compose logs --tail=30 api-gateway
+              docker compose -f docker-compose.prod.yml logs --tail=20 api-gateway
               echo ""
               echo "🔍 Health check:"
               curl -f http://localhost:8000/health || echo "⚠️ Health check failed"
@@ -200,17 +200,14 @@ jobs:
               echo ""
               echo "❌ Detailed logs for each service:"
               echo ""
-              echo "=== REDIS LOGS ==="
-              docker compose logs --tail=50 redis
-              echo ""
               echo "=== IDENTITY SERVICE LOGS ==="
-              docker compose logs --tail=100 identity-service
+              docker compose -f docker-compose.prod.yml logs --tail=50 identity-service
               echo ""
               echo "=== COURSE SERVICE LOGS ==="
-              docker compose logs --tail=100 course-service
+              docker compose -f docker-compose.prod.yml logs --tail=50 course-service
               echo ""
               echo "=== API GATEWAY LOGS ==="
-              docker compose logs --tail=100 api-gateway
+              docker compose -f docker-compose.prod.yml logs --tail=50 api-gateway
               exit 1
             fi
           ENDSSH
