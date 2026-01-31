@@ -17,10 +17,8 @@ import { ENVIRONMENT } from '../../env/environment';
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: () => {
-        const secret = ENVIRONMENT.auth.JWT_SECRET;
-        if (!secret) {
-          throw new Error('JWT_SECRET is not defined in environment variables');
-        }
+        const secret = process.env.JWT_SECRET || 'thang2026';
+        console.log('[Auth Module] JWT_SECRET:', secret ? `${secret.substring(0, 5)}***` : 'UNDEFINED');
         return {
           secret,
           signOptions: { expiresIn: '1h' },
@@ -35,4 +33,4 @@ import { ENVIRONMENT } from '../../env/environment';
   providers: [AuthService, ConfigService],
   exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

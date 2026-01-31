@@ -25,7 +25,7 @@ export class AuthService {
     private userService: UserService,
     private organizationService: OrganizationService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   private readonly logger = new Logger(AuthService.name);
 
@@ -80,13 +80,7 @@ export class AuthService {
       if (!user) {
         throw new UnauthorizedException('Invalid email or password');
       }
-      console.log({
-        inputPassword: password,
-        passwordHash: user.passwordHash,
-        hashLength: user.passwordHash?.length,
-      });
 
-      console.log(JSON.stringify(password), password.length);
       // Verify password
       const isPasswordValid = await bcrypt.compare(
         password,
@@ -103,6 +97,9 @@ export class AuthService {
         email: user.email,
         organizationId: user.organizationId,
       };
+
+      const jwtSecret = process.env.JWT_SECRET || 'supersecret';
+      console.log('[Auth Service] Creating token with JWT_SECRET:', jwtSecret ? `${jwtSecret.substring(0, 5)}***` : 'UNDEFINED');
 
       const accessToken = this.jwtService.sign(payload, {
         expiresIn: loginDto.rememberMe ? '7d' : '1h',

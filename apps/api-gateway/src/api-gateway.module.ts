@@ -32,9 +32,15 @@ export const CONTROLLER_COURSE = [
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({
-      secret: 'supersecret', // Same secret as identity service
-      signOptions: { expiresIn: '1h' },
+    JwtModule.registerAsync({
+      useFactory: () => {
+        const secret = process.env.JWT_SECRET || 'thang2026';
+        console.log('[API Gateway Module] JWT_SECRET:', secret ? `${secret.substring(0, 5)}***` : 'UNDEFINED');
+        return {
+          secret,
+          signOptions: { expiresIn: '1h' },
+        };
+      },
     }),
     ClientsModule.register([
       {
@@ -74,4 +80,4 @@ export const CONTROLLER_COURSE = [
   controllers: [HealthController, ...CONTROLLER_IDENTITY, ...CONTROLLER_COURSE],
   providers: [JwtStrategy, R2StorageService],
 })
-export class ApiGatewayModule {}
+export class ApiGatewayModule { }

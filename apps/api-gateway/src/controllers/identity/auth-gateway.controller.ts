@@ -30,7 +30,7 @@ import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 @Controller('auth')
 @ApiTags('auth')
 export class AuthGatewayController {
-  constructor(@Inject('IDENTITY_SERVICE') private usersClient: ClientProxy) {}
+  constructor(@Inject('IDENTITY_SERVICE') private usersClient: ClientProxy) { }
 
   @Post('/register')
   @HttpCode(HttpStatus.CREATED)
@@ -76,11 +76,16 @@ export class AuthGatewayController {
   @ApiUnauthorizedResponse({
     description: 'Invalid email or password',
   })
-  login(@Body() loginDto: LoginDto) {
-    return this.usersClient.send(
+  async login(@Body() loginDto: LoginDto) {
+    console.log('[Auth Gateway] Login request received:', { email: loginDto.email });
+
+    const result = await this.usersClient.send(
       MessagePatternEnum.IDENTITY_AUTH_LOGIN,
       loginDto,
-    );
+    ).toPromise();
+
+    console.log('[Auth Gateway] Login response:', result ? 'SUCCESS' : 'FAILED');
+    return result;
   }
 
   @Get('/me')
@@ -97,7 +102,7 @@ export class AuthGatewayController {
   })
   getCurrentUser(@Request() req: any) {
     const userId = req.user?.id;
-
+    console.log(req.user, "àdslkjf");
     if (!userId) {
       throw new Error('User ID not found in request');
     }
