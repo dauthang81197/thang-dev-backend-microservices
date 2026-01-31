@@ -10,6 +10,7 @@ import { RBACGatewayController } from './controllers/identity/rbac-gateway.contr
 import { CourseGatewayController } from './controllers/course/course-gateway.controller';
 import { CourseAdminGatewayController } from './controllers/course/course-admin-gateway.controller';
 import { LessonGatewayController } from './controllers/course/lesson-gateway.controller';
+import { HealthController } from './controllers/health.controller';
 import { JwtStrategy } from './guards/jwt.strategy';
 import { R2StorageService } from './services/r2-storage.service';
 import { ENVIRONMENT } from '../env/environment';
@@ -70,7 +71,7 @@ export const CONTROLLER_COURSE = [
       },
     ]),
   ],
-  controllers: [...CONTROLLER_IDENTITY, ...CONTROLLER_COURSE],
+  controllers: [HealthController, ...CONTROLLER_IDENTITY, ...CONTROLLER_COURSE],
   providers: [JwtStrategy, R2StorageService],
 })
 export class ApiGatewayModule {}
