@@ -1,25 +1,19 @@
-// Load .env file FIRST before any imports
-import { config } from 'dotenv';
-import { join } from 'path';
-
-// Load from project root (works in both dev and build mode)
-const envPath = join(process.cwd(), '.env');
-console.log('[ENV] Attempting to load .env from:', envPath);
-const result = config({ path: envPath });
-if (result.error) {
-  console.error('[ENV] Error loading .env file:', result.error);
-} else {
-  console.log('[ENV] Successfully loaded .env file');
-}
-
 import { NestFactory } from '@nestjs/core';
 import { ApiGatewayModule } from './api-gateway.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(ApiGatewayModule);
-  app.enableCors();
+
+  // CORS Configuration
+  const corsOrigin = process.env.CORS_ORIGIN || '*';
+  app.enableCors({
+    origin: corsOrigin,
+    credentials: true,
+  });
+
   app.setGlobalPrefix('api');
+
   const config = new DocumentBuilder()
     .setTitle('Microservices API Gateway')
     .setDescription('API Gateway for all services')
@@ -28,9 +22,21 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+    customSiteTitle: 'API Gateway Documentation',
+  });
+  console.log('[API Gateway] Swagger documentation enabled at /docs');
 
-  await app.listen(8000);
-  console.log(`Swagger running at http://localhost:8000/docs`);
+  // Port Configuration
+  const port = parseInt(process.env.PORT || '8000', 10);
+  await app.listen(port, '0.0.0.0');
+
+  console.log(`[API Gateway] Server running on port ${port}`);
+  console.log(`[API Gateway] Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`[API Gateway] CORS Origin: ${corsOrigin}`);
+  console.log(`[API Gateway] Swagger documentation: /docs`);
 }
 bootstrap();
