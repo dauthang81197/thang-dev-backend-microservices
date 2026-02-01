@@ -6,11 +6,13 @@ import {
   UpdateDateColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   JoinColumn,
   Index,
 } from 'typeorm';
 import { Section } from './section.entity';
 import { LessonProgress } from './lesson-progress.entity';
+import { Transcript } from './transcript.entity';
 
 export enum LessonType {
   VIDEO = 'video',
@@ -106,4 +108,7 @@ export class Lesson {
 
   @OneToMany(() => LessonProgress, (progress) => progress.lesson)
   progress: LessonProgress[];
+
+  @OneToOne(() => Transcript, (transcript) => transcript.lesson)
+  transcript: Transcript;
 }

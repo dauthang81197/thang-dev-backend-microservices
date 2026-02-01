@@ -6,7 +6,7 @@ import { CourseLearningService } from './course-learning.service';
 export class CourseLearningController {
   private readonly logger = new Logger(CourseLearningController.name);
 
-  constructor(private readonly courseLearningService: CourseLearningService) {}
+  constructor(private readonly courseLearningService: CourseLearningService) { }
 
   @MessagePattern('lesson.get')
   async getLesson(@Payload() data: { lessonId: string; userId: string }) {
@@ -60,5 +60,11 @@ export class CourseLearningController {
       data.courseId,
       data.userId,
     );
+  }
+
+  @MessagePattern('lesson.transcript.get')
+  async getLessonTranscript(@Payload() data: { lessonId: string }) {
+    this.logger.log(`Getting transcript for lesson ${data.lessonId}`);
+    return this.courseLearningService.getLessonTranscript(data.lessonId);
   }
 }

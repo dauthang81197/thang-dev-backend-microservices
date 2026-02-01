@@ -6,6 +6,8 @@ import {
   Lesson,
   Enrollment,
   LessonProgress,
+  TranscriptionJob,
+  Transcript,
 } from '../../shareds/entities';
 import { CourseController } from './course.controller';
 import { CourseAdminController } from './course-admin.controller';
@@ -25,6 +27,8 @@ import { R2StorageService } from '../../shareds/services/r2-storage.service';
       Lesson,
       Enrollment,
       LessonProgress,
+      TranscriptionJob,
+      Transcript,
     ]),
   ],
   controllers: [
@@ -49,4 +53,4 @@ import { R2StorageService } from '../../shareds/services/r2-storage.service';
     R2StorageService,
   ],
 })
-export class CourseModule {}
+export class CourseModule { }

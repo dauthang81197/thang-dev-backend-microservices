@@ -12,6 +12,7 @@ import { LessonProgress } from '../../shareds/entities/lesson-progress.entity';
 import { Enrollment } from '../../shareds/entities/enrollment.entity';
 import { Section } from '../../shareds/entities/section.entity';
 import { Course } from '../../shareds/entities/course.entity';
+import { Transcript } from '../../shareds/entities/transcript.entity';
 import {
   LessonDetailResponseDto,
   CourseProgressResponseDto,
@@ -35,9 +36,11 @@ export class CourseLearningService {
     private readonly sectionRepository: Repository<Section>,
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
+    @InjectRepository(Transcript)
+    private readonly transcriptRepository: Repository<Transcript>,
     private readonly dataSource: DataSource,
     private readonly r2StorageService: R2StorageService,
-  ) {}
+  ) { }
 
   /**
    * Get lesson detail with access control
@@ -47,11 +50,11 @@ export class CourseLearningService {
   async getLessonDetail(
     lessonId: string,
     userId: string,
-  ): Promise<LessonDetailResponseDto> {
+  ): Promise<any> {
     // Find lesson with relations
     const lesson = await this.lessonRepository.findOne({
       where: { id: lessonId },
-      relations: ['section', 'section.course'],
+      relations: ['section', 'section.course', 'transcript'],
     });
 
     if (!lesson) {
@@ -115,6 +118,46 @@ export class CourseLearningService {
       completed: progress?.completed || false,
       watchedDuration: progress?.watchedDuration || 0,
       canAccess,
+      transcript: lesson.transcript
+        ? {
+            content: lesson.transcript.content,
+            segments: lesson.transcript.segments || [],
+            language: lesson.transcript.language,
+            source: lesson.transcript.source,
+            duration: lesson.transcript.duration,
+            wordCount: lesson.transcript.wordCount,
+          }
+        : null,
+    };
+  }
+
+  /**
+   * Get lesson transcript
+   */
+  async getLessonTranscript(lessonId: string) {
+    const lesson = await this.lessonRepository.findOne({
+      where: { id: lessonId },
+      relations: ['transcript'],
+    });
+
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${lessonId} not found`);
+    }
+
+    if (!lesson.transcript) {
+      return { hasTranscript: false, transcript: null };
+    }
+
+    return {
+      hasTranscript: true,
+      transcript: {
+        content: lesson.transcript.content,
+        segments: lesson.transcript.segments,
+        language: lesson.transcript.language,
+        source: lesson.transcript.source,
+        duration: lesson.transcript.duration,
+        wordCount: lesson.transcript.wordCount,
+      },
     };
   }
 

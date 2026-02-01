@@ -26,7 +26,7 @@ export class CourseAdminService {
     @InjectRepository(Lesson)
     private lessonRepository: Repository<Lesson>,
     private r2StorageService: R2StorageService,
-  ) {}
+  ) { }
 
   // ============ COURSE CRUD ============
 

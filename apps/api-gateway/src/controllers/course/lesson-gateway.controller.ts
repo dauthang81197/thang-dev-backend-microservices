@@ -5,10 +5,10 @@ import {
   Param,
   Body,
   UseGuards,
-  Request,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
+import { GetUser } from '@app/common';
 import {
   ApiTags,
   ApiOperation,
@@ -29,7 +29,7 @@ import {
 export class LessonGatewayController {
   constructor(
     @Inject('COURSE_SERVICE') private readonly courseClient: ClientProxy,
-  ) {}
+  ) { }
 
   @Get(':lessonId')
   @UseGuards(JwtAuthGuard)
@@ -45,8 +45,10 @@ export class LessonGatewayController {
   })
   @ApiResponse({ status: 403, description: 'Not enrolled in course' })
   @ApiResponse({ status: 404, description: 'Lesson not found' })
-  async getLesson(@Param('lessonId') lessonId: string, @Request() req: any) {
-    const userId = req.user.userId;
+  async getLesson(
+    @Param('lessonId') lessonId: string,
+    @GetUser('id') userId: string,
+  ) {
     return firstValueFrom(
       this.courseClient.send('lesson.get', { lessonId, userId }),
     );
@@ -70,9 +72,8 @@ export class LessonGatewayController {
   async completeLesson(
     @Param('lessonId') lessonId: string,
     @Body() dto: CompleteLessonDto,
-    @Request() req: any,
+    @GetUser('id') userId: string,
   ) {
-    const userId = req.user.userId;
     return firstValueFrom(
       this.courseClient.send('lesson.complete', {
         lessonId,
@@ -100,11 +101,26 @@ export class LessonGatewayController {
   async uncompleteLesson(
     @Param('lessonId') lessonId: string,
     @Body() dto: UncompleteLessonDto,
-    @Request() req: any,
+    @GetUser('id') userId: string,
   ) {
-    const userId = req.user.userId;
     return firstValueFrom(
       this.courseClient.send('lesson.uncomplete', { lessonId, userId }),
+    );
+  }
+
+  @Get(':lessonId/transcript')
+  @ApiOperation({
+    summary: 'Get lesson transcript',
+    description: 'Get video transcript/subtitles for a lesson',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Transcript retrieved successfully',
+  })
+  @ApiResponse({ status: 404, description: 'Lesson or transcript not found' })
+  async getLessonTranscript(@Param('lessonId') lessonId: string) {
+    return firstValueFrom(
+      this.courseClient.send('lesson.transcript.get', { lessonId }),
     );
   }
 }
