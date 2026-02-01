@@ -81,4 +81,23 @@ export class LessonDetailResponseDto {
   completed: boolean;
   watchedDuration: number;
   canAccess: boolean;
+  testField?: string;
+  transcriptContent?: string | null;
+  transcriptLanguage?: string | null;
+  transcriptSource?: string | null;
+  transcriptDuration?: number | null;
+  transcriptWordCount?: number | null;
+  transcriptSegmentsJson?: string | null;
+  transcript?: {
+    content: string;
+    segments: Array<{
+      start: number;
+      end: number;
+      text: string;
+    }>;
+    language: string;
+    source: string;
+    duration: number;
+    wordCount: number;
+  } | null;
 }
