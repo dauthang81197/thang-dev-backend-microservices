@@ -80,6 +80,28 @@ export class EnrollmentService {
     return !!enrollment;
   }
 
+  async updateLastAccessedLesson(
+    userId: string,
+    courseId: string,
+    lessonId: string,
+  ): Promise<void> {
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: {
+        userId,
+        courseId,
+        status: EnrollmentStatus.ACTIVE,
+      },
+    });
+
+    if (!enrollment) {
+      throw new NotFoundException('Enrollment not found');
+    }
+
+    enrollment.lastAccessedLessonId = lessonId;
+    enrollment.lastAccessedAt = new Date();
+    await this.enrollmentRepository.save(enrollment);
+  }
+
   private async updateEnrollmentCount(courseId: string): Promise<void> {
     // Use raw query for atomic increment
     await this.enrollmentRepository.query(

@@ -86,4 +86,20 @@ export class CourseController {
   ): Promise<CourseSectionsResponseDto> {
     return this.courseService.getCourseSections(payload.courseId);
   }
+
+  /**
+   * Message Pattern: courses.updateLastAccessedLesson
+   * Update the last accessed lesson for a user's enrollment
+   */
+  @MessagePattern('courses.updateLastAccessedLesson')
+  async updateLastAccessedLesson(
+    @Payload() payload: { courseId: string; userId: string; lessonId: string },
+  ): Promise<{ success: boolean }> {
+    await this.enrollmentService.updateLastAccessedLesson(
+      payload.userId,
+      payload.courseId,
+      payload.lessonId,
+    );
+    return { success: true };
+  }
 }

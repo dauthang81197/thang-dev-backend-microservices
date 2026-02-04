@@ -43,6 +43,7 @@ export class CourseProgressResponseDto {
   progressPercent: number;
   completedLessonsCount: number;
   totalLessonsCount: number;
+  lastAccessedLessonId: string | null;
   sections: SectionProgressDto[];
 }
 

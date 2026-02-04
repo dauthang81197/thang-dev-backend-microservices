@@ -4,6 +4,7 @@ import {
   Post,
   Param,
   Query,
+  Body,
   Inject,
   UseGuards,
   HttpCode,
@@ -187,5 +188,39 @@ export class CourseGatewayController {
   })
   async getCourseSections(@Param('id') courseId: string) {
     return this.courseClient.send('courses.getSections', { courseId });
+  }
+
+  /**
+   * POST /courses/:id/last-accessed
+   * Update the last accessed lesson for the current user
+   */
+  @Post(':id/last-accessed')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update last accessed lesson for current user' })
+  @ApiParam({ name: 'id', description: 'Course ID (UUID)' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Last accessed lesson updated successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Enrollment not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Unauthorized',
+  })
+  async updateLastAccessedLesson(
+    @Param('id') courseId: string,
+    @Body() body: { lessonId: string },
+    @Request() req: any,
+  ) {
+    return this.courseClient.send('courses.updateLastAccessedLesson', {
+      courseId,
+      lessonId: body.lessonId,
+      userId: req.user.id,
+    });
   }
 }
