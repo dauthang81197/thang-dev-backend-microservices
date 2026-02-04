@@ -40,17 +40,14 @@ export class CourseLearningService {
     private readonly transcriptRepository: Repository<Transcript>,
     private readonly dataSource: DataSource,
     private readonly r2StorageService: R2StorageService,
-  ) { }
+  ) {}
 
   /**
    * Get lesson detail with access control
    * - Preview lessons: accessible to everyone
    * - Non-preview lessons: require enrollment
    */
-  async getLessonDetail(
-    lessonId: string,
-    userId: string,
-  ): Promise<any> {
+  async getLessonDetail(lessonId: string, userId: string): Promise<any> {
     // Find lesson with relations
     const lesson = await this.lessonRepository.findOne({
       where: { id: lessonId },
@@ -390,6 +387,7 @@ export class CourseLearningService {
       progressPercent: Math.round(progressPercent * 100) / 100,
       completedLessonsCount: completedLessons,
       totalLessonsCount: totalLessons,
+      lastAccessedLessonId: enrollment.lastAccessedLessonId || null,
       sections,
     };
   }

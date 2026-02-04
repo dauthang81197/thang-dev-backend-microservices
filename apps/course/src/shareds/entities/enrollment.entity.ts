@@ -44,6 +44,9 @@ export class Enrollment {
   @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
   progress: number; // 0-100 percentage
 
+  @Column({ type: 'uuid', nullable: true })
+  lastAccessedLessonId: string;
+
   @Column({ type: 'timestamp', nullable: true })
   lastAccessedAt: Date;
 
