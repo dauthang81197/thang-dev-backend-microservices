@@ -11,7 +11,9 @@ import { CourseGatewayController } from './controllers/course/course-gateway.con
 import { CourseAdminGatewayController } from './controllers/course/course-admin-gateway.controller';
 import { LessonGatewayController } from './controllers/course/lesson-gateway.controller';
 import { HealthController } from './controllers/health.controller';
+import { MinioGatewayController } from './controllers/storage/minio-gateway.controller';
 import { JwtStrategy } from './guards/jwt.strategy';
+import { MinioService } from './services/minio.service';
 import { R2StorageService } from './services/r2-storage.service';
 import { ENVIRONMENT } from '../env/environment';
 
@@ -27,6 +29,10 @@ export const CONTROLLER_COURSE = [
   CourseGatewayController,
   CourseAdminGatewayController,
   LessonGatewayController,
+];
+
+export const CONTROLLER_STORAGE = [
+  MinioGatewayController,
 ];
 
 @Module({
@@ -77,7 +83,7 @@ export const CONTROLLER_COURSE = [
       },
     ]),
   ],
-  controllers: [HealthController, ...CONTROLLER_IDENTITY, ...CONTROLLER_COURSE],
-  providers: [JwtStrategy, R2StorageService],
+  controllers: [HealthController, ...CONTROLLER_IDENTITY, ...CONTROLLER_COURSE, ...CONTROLLER_STORAGE],
+  providers: [JwtStrategy, R2StorageService, MinioService],
 })
 export class ApiGatewayModule { }
