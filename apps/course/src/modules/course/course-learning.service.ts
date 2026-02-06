@@ -19,7 +19,7 @@ import {
   SectionProgressDto,
   LessonProgressDto,
 } from './dto/lesson-learning.dto';
-import { R2StorageService } from '../../shareds/services/r2-storage.service';
+import { MinioStorageService } from '../../shareds/services/minio-storage.service';
 
 @Injectable()
 export class CourseLearningService {
@@ -39,7 +39,7 @@ export class CourseLearningService {
     @InjectRepository(Transcript)
     private readonly transcriptRepository: Repository<Transcript>,
     private readonly dataSource: DataSource,
-    private readonly r2StorageService: R2StorageService,
+    private readonly minioStorageService: MinioStorageService,
   ) {}
 
   /**
@@ -92,7 +92,7 @@ export class CourseLearningService {
     // Get video URL if has video
     let videoUrl: string | null = null;
     if (lesson.videoKey) {
-      videoUrl = await this.r2StorageService.getPresignedUrl(
+      videoUrl = await this.minioStorageService.getPresignedUrl(
         lesson.videoKey,
         3600,
       );

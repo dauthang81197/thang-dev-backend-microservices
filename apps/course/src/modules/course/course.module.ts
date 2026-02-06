@@ -17,7 +17,7 @@ import { CourseAdminService } from './course-admin.service';
 import { CourseLearningService } from './course-learning.service';
 import { EnrollmentService } from './enrollment.service';
 import { ProgressService } from './progress.service';
-import { R2StorageService } from '../../shareds/services/r2-storage.service';
+import { MinioStorageService } from '../../shareds/services/minio-storage.service';
 
 @Module({
   imports: [
@@ -42,7 +42,7 @@ import { R2StorageService } from '../../shareds/services/r2-storage.service';
     CourseLearningService,
     EnrollmentService,
     ProgressService,
-    R2StorageService,
+    MinioStorageService,
   ],
   exports: [
     CourseService,
@@ -50,7 +50,7 @@ import { R2StorageService } from '../../shareds/services/r2-storage.service';
     CourseLearningService,
     EnrollmentService,
     ProgressService,
-    R2StorageService,
+    MinioStorageService,
   ],
 })
-export class CourseModule { }
+export class CourseModule {}

@@ -14,7 +14,6 @@ import { HealthController } from './controllers/health.controller';
 import { MinioGatewayController } from './controllers/storage/minio-gateway.controller';
 import { JwtStrategy } from './guards/jwt.strategy';
 import { MinioService } from './services/minio.service';
-import { R2StorageService } from './services/r2-storage.service';
 import { ENVIRONMENT } from '../env/environment';
 
 export const CONTROLLER_IDENTITY = [
@@ -31,9 +30,7 @@ export const CONTROLLER_COURSE = [
   LessonGatewayController,
 ];
 
-export const CONTROLLER_STORAGE = [
-  MinioGatewayController,
-];
+export const CONTROLLER_STORAGE = [MinioGatewayController];
 
 @Module({
   imports: [
@@ -41,7 +38,10 @@ export const CONTROLLER_STORAGE = [
     JwtModule.registerAsync({
       useFactory: () => {
         const secret = process.env.JWT_SECRET || 'thang2026';
-        console.log('[API Gateway Module] JWT_SECRET:', secret ? `${secret.substring(0, 5)}***` : 'UNDEFINED');
+        console.log(
+          '[API Gateway Module] JWT_SECRET:',
+          secret ? `${secret.substring(0, 5)}***` : 'UNDEFINED',
+        );
         return {
           secret,
           signOptions: { expiresIn: '1h' },
@@ -83,7 +83,12 @@ export const CONTROLLER_STORAGE = [
       },
     ]),
   ],
-  controllers: [HealthController, ...CONTROLLER_IDENTITY, ...CONTROLLER_COURSE, ...CONTROLLER_STORAGE],
-  providers: [JwtStrategy, R2StorageService, MinioService],
+  controllers: [
+    HealthController,
+    ...CONTROLLER_IDENTITY,
+    ...CONTROLLER_COURSE,
+    ...CONTROLLER_STORAGE,
+  ],
+  providers: [JwtStrategy, MinioService],
 })
-export class ApiGatewayModule { }
+export class ApiGatewayModule {}
