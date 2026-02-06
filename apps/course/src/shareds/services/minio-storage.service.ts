@@ -9,14 +9,14 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
-export class MinioService {
-  private readonly logger = new Logger(MinioService.name);
-  public s3: S3Client;
+export class MinioStorageService {
+  private readonly logger = new Logger(MinioStorageService.name);
+  private readonly s3Client: S3Client;
   private readonly bucketName: string;
   private readonly publicUrl: string;
 
   constructor() {
-    // Cấu hình MinIO
+    // Cấu hình MinIO từ environment variables
     const minioConfig = {
       endpoint: process.env.MINIO_ENDPOINT || 'https://storage.thanghub.com',
       accessKeyId: process.env.MINIO_ACCESS_KEY || 'admin',
@@ -29,7 +29,8 @@ export class MinioService {
     this.bucketName = minioConfig.bucketName;
     this.publicUrl = minioConfig.publicUrl;
 
-    this.s3 = new S3Client({
+    // Initialize S3 client cho MinIO
+    this.s3Client = new S3Client({
       endpoint: minioConfig.endpoint,
       region: 'us-east-1',
       credentials: {
@@ -39,13 +40,16 @@ export class MinioService {
       forcePathStyle: true, // QUAN TRỌNG với MinIO
     });
 
-    this.logger.log(
-      'MinIO Service initialized with bucket: ' + this.bucketName,
-    );
+    this.logger.log('MinIO Storage Service initialized in Course Service');
   }
 
   /**
    * Upload file to MinIO
+   * @param file - File buffer
+   * @param originalName - Original filename
+   * @param mimeType - MIME type
+   * @param folder - Folder path (e.g., 'videos', 'thumbnails')
+   * @returns Object key in MinIO
    */
   async uploadFile(
     file: Buffer,
@@ -65,7 +69,7 @@ export class MinioService {
         ContentType: mimeType,
       });
 
-      await this.s3.send(command);
+      await this.s3Client.send(command);
 
       this.logger.log(`File uploaded successfully: ${key}`);
       return key;
@@ -85,7 +89,7 @@ export class MinioService {
         Key: key,
       });
 
-      await this.s3.send(command);
+      await this.s3Client.send(command);
       this.logger.log(`File deleted successfully: ${key}`);
     } catch (error) {
       this.logger.error('Error deleting file from MinIO', error);
@@ -94,7 +98,10 @@ export class MinioService {
   }
 
   /**
-   * Get presigned URL for temporary access (1 hour default)
+   * Get presigned URL for temporary access
+   * @param key - Object key
+   * @param expiresIn - Expiration time in seconds (default: 1 hour)
+   * @returns Presigned URL
    */
   async getPresignedUrl(key: string, expiresIn = 3600): Promise<string> {
     try {
@@ -102,8 +109,9 @@ export class MinioService {
         Bucket: this.bucketName,
         Key: key,
       });
-
-      const url = await getSignedUrl(this.s3, command, { expiresIn });
+      console.log(command, 'fjlas');
+      const url = await getSignedUrl(this.s3Client, command, { expiresIn });
+      console.log(url, ':fjlas');
       return url;
     } catch (error) {
       this.logger.error('Error generating presigned URL', error);
@@ -112,12 +120,29 @@ export class MinioService {
   }
 
   /**
-   * Get public URL
+   * Get public URL (if bucket is public)
    */
   getPublicUrl(key: string): string {
     if (!this.publicUrl) {
       throw new Error('Public URL not configured');
     }
     return `${this.publicUrl}/${key}`;
+  }
+
+  /**
+   * Check if file exists
+   */
+  async fileExists(key: string): Promise<boolean> {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      });
+
+      await this.s3Client.send(command);
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 }

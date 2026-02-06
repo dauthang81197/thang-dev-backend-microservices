@@ -12,7 +12,7 @@ import { Lesson } from '../../shareds/entities/lesson.entity';
 import { CreateCourseDto, UpdateCourseDto } from './dto/create-course.dto';
 import { CreateSectionDto, UpdateSectionDto } from './dto/create-section.dto';
 import { CreateLessonDto, UpdateLessonDto } from './dto/create-lesson.dto';
-import { R2StorageService } from '../../shareds/services/r2-storage.service';
+import { MinioStorageService } from '../../shareds/services/minio-storage.service';
 
 @Injectable()
 export class CourseAdminService {
@@ -25,8 +25,8 @@ export class CourseAdminService {
     private sectionRepository: Repository<Section>,
     @InjectRepository(Lesson)
     private lessonRepository: Repository<Lesson>,
-    private r2StorageService: R2StorageService,
-  ) { }
+    private minioStorageService: MinioStorageService,
+  ) {}
 
   // ============ COURSE CRUD ============
 
@@ -142,10 +142,10 @@ export class CourseAdminService {
       throw new NotFoundException('Course not found');
     }
 
-    // Delete thumbnail from R2 if exists
+    // Delete thumbnail from MinIO if exists
     if (course.thumbnail) {
       try {
-        await this.r2StorageService.deleteFile(course.thumbnail);
+        await this.minioStorageService.deleteFile(course.thumbnail);
       } catch (error) {
         this.logger.warn(`Failed to delete thumbnail: ${error.message}`);
       }
@@ -167,12 +167,12 @@ export class CourseAdminService {
       throw new NotFoundException('Course not found');
     }
 
-    // Delete old thumbnail from R2 if exists and is different
+    // Delete old thumbnail from MinIO if exists and is different
     if (course.thumbnail && course.thumbnail !== thumbnail) {
       try {
         // Extract key from old thumbnail URL or use thumbnailKey if stored
         const oldKey = course.thumbnail.split('/').slice(-2).join('/'); // Extract folder/filename
-        await this.r2StorageService.deleteFile(oldKey);
+        await this.minioStorageService.deleteFile(oldKey);
         this.logger.log(`Old thumbnail deleted: ${oldKey}`);
       } catch (error) {
         this.logger.warn(`Failed to delete old thumbnail: ${error.message}`);
@@ -318,10 +318,10 @@ export class CourseAdminService {
       throw new NotFoundException('Lesson not found');
     }
 
-    // Delete video from R2 if exists
+    // Delete video from MinIO if exists
     if (lesson.videoKey) {
       try {
-        await this.r2StorageService.deleteFile(lesson.videoKey);
+        await this.minioStorageService.deleteFile(lesson.videoKey);
       } catch (error) {
         this.logger.warn(`Failed to delete video: ${error.message}`);
       }
@@ -365,7 +365,7 @@ export class CourseAdminService {
     // Delete old video if exists
     if (lesson.videoKey && lesson.videoKey !== videoKey) {
       try {
-        await this.r2StorageService.deleteFile(lesson.videoKey);
+        await this.minioStorageService.deleteFile(lesson.videoKey);
         this.logger.log(`Old video deleted: ${lesson.videoKey}`);
       } catch (error) {
         this.logger.warn(`Failed to delete old video: ${error.message}`);
@@ -421,14 +421,14 @@ export class CourseAdminService {
     // Delete old video if exists
     if (lesson.videoKey) {
       try {
-        await this.r2StorageService.deleteFile(lesson.videoKey);
+        await this.minioStorageService.deleteFile(lesson.videoKey);
       } catch (error) {
         this.logger.warn(`Failed to delete old video: ${error.message}`);
       }
     }
 
-    // Upload to R2
-    const videoKey = await this.r2StorageService.uploadFile(
+    // Upload to MinIO
+    const videoKey = await this.minioStorageService.uploadFile(
       file.buffer,
       file.originalname,
       file.mimetype,
@@ -460,7 +460,7 @@ export class CourseAdminService {
     }
 
     // Generate presigned URL (expires in 1 hour)
-    const url = await this.r2StorageService.getPresignedUrl(
+    const url = await this.minioStorageService.getPresignedUrl(
       lesson.videoKey,
       3600,
     );

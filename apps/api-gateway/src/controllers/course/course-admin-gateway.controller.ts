@@ -26,7 +26,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
-import { R2StorageService } from '../../services/r2-storage.service';
+import { MinioService } from '../../services/minio.service';
 import { firstValueFrom } from 'rxjs';
 
 // DTOs - Define inline or import from shared lib
@@ -102,7 +102,7 @@ interface UpdateLessonDto {
 export class CourseAdminGatewayController {
   constructor(
     @Inject('COURSE_SERVICE') private readonly courseClient: ClientProxy,
-    private readonly r2StorageService: R2StorageService,
+    private readonly minioService: MinioService,
   ) {}
 
   // ============ COURSE CRUD ============
@@ -313,8 +313,8 @@ export class CourseAdminGatewayController {
       );
     }
 
-    // Upload directly to R2 from API Gateway
-    const thumbnailKey = await this.r2StorageService.uploadFile(
+    // Upload directly to MinIO from API Gateway
+    const thumbnailKey = await this.minioService.uploadFile(
       file.buffer,
       file.originalname,
       file.mimetype,
@@ -322,7 +322,7 @@ export class CourseAdminGatewayController {
     );
 
     // Get public URL
-    const thumbnailUrl = this.r2StorageService.getPublicUrl(thumbnailKey);
+    const thumbnailUrl = this.minioService.getPublicUrl(thumbnailKey);
 
     // Update course with thumbnail URL and key
     const result = await firstValueFrom(
@@ -420,8 +420,8 @@ export class CourseAdminGatewayController {
       );
     }
 
-    // Upload directly to R2 from API Gateway (faster than sending through Redis)
-    const videoKey = await this.r2StorageService.uploadFile(
+    // Upload directly to MinIO from API Gateway (faster than sending through Redis)
+    const videoKey = await this.minioService.uploadFile(
       file.buffer,
       file.originalname,
       file.mimetype,
@@ -440,17 +440,17 @@ export class CourseAdminGatewayController {
 
     return {
       ...result,
-      message: 'Video uploaded successfully to R2 Cloud Storage',
+      message: 'Video uploaded successfully to MinIO Storage',
     };
   }
 
   @Get('lessons/:lessonId/video-url')
   @ApiOperation({
-    summary: 'Get presigned video URL from R2 (expires in 1 hour)',
+    summary: 'Get presigned video URL from MinIO (expires in 1 hour)',
   })
   @ApiResponse({
     status: 200,
-    description: 'Returns presigned URL for video access from R2',
+    description: 'Returns presigned URL for video access from MinIO',
     schema: {
       type: 'object',
       properties: {

@@ -7,7 +7,7 @@ import {
   CourseStatus,
   LessonType,
 } from '../shareds/entities';
-import { R2StorageService } from '../shareds/services/r2-storage.service';
+import { MinioStorageService } from '../shareds/services/minio-storage.service';
 import * as https from 'https';
 import * as http from 'http';
 import { dataSource } from './ormconfig';
@@ -41,10 +41,10 @@ async function downloadImage(url: string): Promise<Buffer> {
 }
 
 /**
- * Upload thumbnail to R2 and return public URL
+ * Upload thumbnail to MinIO and return public URL
  */
 async function uploadThumbnail(
-  r2Service: R2StorageService,
+  minioService: MinioStorageService,
   imageUrl: string,
   courseName: string,
 ): Promise<string> {
@@ -55,15 +55,15 @@ async function uploadThumbnail(
     const fileName = `${courseName.toLowerCase().replace(/\s+/g, '-')}.jpg`;
     const mimeType = 'image/jpeg';
 
-    console.log(`  📤 Uploading to R2: ${fileName}`);
-    const key = await r2Service.uploadFile(
+    console.log(`  📤 Uploading to MinIO: ${fileName}`);
+    const key = await minioService.uploadFile(
       imageBuffer,
       fileName,
       mimeType,
       'thumbnails',
     );
 
-    const publicUrl = r2Service.getPublicUrl(key);
+    const publicUrl = minioService.getPublicUrl(key);
     console.log(`  ✅ Thumbnail uploaded: ${publicUrl}`);
 
     return publicUrl;
@@ -78,7 +78,7 @@ export async function seedCourses(dataSource: DataSource) {
   const courseRepository = dataSource.getRepository(Course);
   const sectionRepository = dataSource.getRepository(Section);
   const lessonRepository = dataSource.getRepository(Lesson);
-  const r2Service = new R2StorageService();
+  const minioService = new MinioStorageService();
 
   console.log('🌱 Seeding courses...');
 
@@ -86,7 +86,7 @@ export async function seedCourses(dataSource: DataSource) {
   console.log('\n📚 Creating Course 1: JavaScript...');
 
   const jsThumbnailUrl = await uploadThumbnail(
-    r2Service,
+    minioService,
     'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=800&h=450&fit=crop',
     'Complete JavaScript Course',
   );
@@ -231,7 +231,7 @@ export async function seedCourses(dataSource: DataSource) {
   console.log('\n📚 Creating Course 2: Python...');
 
   const pythonThumbnailUrl = await uploadThumbnail(
-    r2Service,
+    minioService,
     'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=800&h=450&fit=crop',
     'Python for Data Science',
   );
@@ -306,7 +306,7 @@ export async function seedCourses(dataSource: DataSource) {
   console.log('\n📚 Creating Course 3: React...');
 
   const reactThumbnailUrl = await uploadThumbnail(
-    r2Service,
+    minioService,
     'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=450&fit=crop',
     'Advanced React Patterns',
   );
