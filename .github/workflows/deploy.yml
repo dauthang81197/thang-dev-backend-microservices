@@ -1,4 +1,4 @@
-name: Deploy Backend Microservices to EC2
+name: Deploy Backend Microservices to VPS
 
 on:
   push:
@@ -10,42 +10,13 @@ on:
   workflow_dispatch:
 
 env:
-  EC2_HOST: ${{ secrets.EC2_HOST }}
-  EC2_USER: ${{ secrets.EC2_USER }}
+  VPS_HOST: ${{ secrets.VPS_HOST }}
+  VPS_USER: ${{ secrets.VPS_USER }}
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  EC2_INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
 
 jobs:
-  start-ec2:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    
-    steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Start EC2 instance
-        run: |
-          echo "🚀 Starting EC2 instance..."
-          aws ec2 start-instances --instance-ids ${{ env.EC2_INSTANCE_ID }} > /dev/null
-          
-          echo "⏳ Waiting for instance to be running..."
-          aws ec2 wait instance-running --instance-ids ${{ env.EC2_INSTANCE_ID }}
-          
-          echo "✅ EC2 instance is now running"
-          
-          # Wait additional 30s for SSH to be ready
-          echo "⏳ Waiting 30s for SSH service to be ready..."
-          sleep 30
-
   build-and-deploy:
     runs-on: ubuntu-latest
-    needs: [start-ec2]
     if: always()
 
     steps:
@@ -131,15 +102,15 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ env.EC2_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ env.VPS_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Copy Docker images to EC2
+      - name: Copy Docker images to VPS
         if: ${{ github.event_name == 'push' }}
         run: |
-          # Create target directory on EC2
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} "mkdir -p ~/course-backend"
+          # Create target directory on VPS
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} "mkdir -p ~/course-backend"
 
           # Copy Docker images and docker-compose.prod.yml
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
@@ -147,18 +118,18 @@ jobs:
             identity-service.tar.gz \
             course-service.tar.gz \
             docker-compose.prod.yml \
-            ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:~/course-backend/
+            ${{ env.VPS_USER }}@${{ env.VPS_HOST }}:~/course-backend/
 
-      - name: Deploy on EC2
+      - name: Deploy on VPS
         if: ${{ github.event_name == 'push' }}
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} << 'ENDSSH'
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'ENDSSH'
             cd ~/course-backend
 
             # Kiểm tra file .env có tồn tại không
             if [ ! -f .env ]; then
               echo "⚠️ WARNING: .env file not found!"
-              echo "Please create .env file on EC2 with all required environment variables."
+              echo "Please create .env file on VPS with all required environment variables."
               echo "See .env.production.example for reference."
               exit 1
             fi
@@ -200,7 +171,7 @@ jobs:
       - name: Verify deployment
         if: ${{ github.event_name == 'push' }}
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.EC2_USER }}@${{ env.EC2_HOST }} << 'ENDSSH'
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'ENDSSH'
             cd ~/course-backend
 
             # Wait for services to be ready
@@ -250,31 +221,3 @@ jobs:
           else
             echo "❌ Deployment failed!"
           fi
-
-  stop-ec2:
-    runs-on: ubuntu-latest
-    needs: [build-and-deploy]
-    if: always() && github.event_name == 'push'
-    
-    steps:
-      - name: Wait 10 minutes before stopping EC2
-        run: |
-          echo "⏳ Waiting 10 minutes before stopping EC2 instance..."
-          sleep 600
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Stop EC2 instance
-        run: |
-          echo "🛑 Stopping EC2 instance..."
-          aws ec2 stop-instances --instance-ids ${{ secrets.EC2_INSTANCE_ID }} > /dev/null
-          
-          echo "⏳ Waiting for instance to stop..."
-          aws ec2 wait instance-stopped --instance-ids ${{ secrets.EC2_INSTANCE_ID }}
-          
-          echo "✅ EC2 instance has been stopped"
