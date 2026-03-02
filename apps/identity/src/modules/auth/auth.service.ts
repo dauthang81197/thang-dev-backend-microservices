@@ -77,7 +77,7 @@ export class AuthService {
     try {
       // Find user by email
       const user = await this.userService.findByEmail(email);
-
+      console.log('User found:', user);
       if (!user) {
         throw new UnauthorizedException('Invalid email or password');
       }

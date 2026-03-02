@@ -12,6 +12,11 @@ import { CourseAdminGatewayController } from './controllers/course/course-admin-
 import { LessonGatewayController } from './controllers/course/lesson-gateway.controller';
 import { HealthController } from './controllers/health.controller';
 import { MinioGatewayController } from './controllers/storage/minio-gateway.controller';
+import { DashboardGatewayController } from './controllers/expenses/dashboard-gateway.controller';
+import { TransactionGatewayController } from './controllers/expenses/transaction-gateway.controller';
+import { WalletGatewayController } from './controllers/expenses/wallet-gateway.controller';
+import { CategoryGatewayController } from './controllers/expenses/category-gateway.controller';
+import { BudgetGatewayController } from './controllers/expenses/budget-gateway.controller';
 import { JwtStrategy } from './guards/jwt.strategy';
 import { GoogleStrategy } from './guards/google.strategy';
 import { MinioService } from './services/minio.service';
@@ -32,6 +37,14 @@ export const CONTROLLER_COURSE = [
 ];
 
 export const CONTROLLER_STORAGE = [MinioGatewayController];
+
+export const CONTROLLER_EXPENSES = [
+  DashboardGatewayController,
+  TransactionGatewayController,
+  WalletGatewayController,
+  CategoryGatewayController,
+  BudgetGatewayController,
+];
 
 @Module({
   imports: [
@@ -82,6 +95,22 @@ export const CONTROLLER_STORAGE = [MinioGatewayController];
           maxRetriesPerRequest: 3,
         },
       },
+      {
+        name: 'EXPENSES_SERVICE',
+        transport: Transport.REDIS,
+        options: {
+          host: ENVIRONMENT.redis.host || 'localhost',
+          port: Number(ENVIRONMENT.redis.port) || 6379,
+          retryAttempts: 5,
+          retryDelay: 3000,
+          connectTimeout: 10000,
+          keepAlive: 30000,
+          lazyConnect: false,
+          enableOfflineQueue: true,
+          enableReadyCheck: true,
+          maxRetriesPerRequest: 3,
+        },
+      },
     ]),
   ],
   controllers: [
@@ -89,7 +118,8 @@ export const CONTROLLER_STORAGE = [MinioGatewayController];
     ...CONTROLLER_IDENTITY,
     ...CONTROLLER_COURSE,
     ...CONTROLLER_STORAGE,
+    ...CONTROLLER_EXPENSES,
   ],
   providers: [JwtStrategy, GoogleStrategy, MinioService],
 })
-export class ApiGatewayModule {}
+export class ApiGatewayModule { }

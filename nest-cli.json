@@ -53,6 +53,15 @@
         "tsConfigPath": "libs/database/tsconfig.lib.json"
       }
     },
+    "expenses": {
+      "type": "application",
+      "root": "apps/expenses",
+      "entryFile": "main",
+      "sourceRoot": "apps/expenses/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/expenses/tsconfig.app.json"
+      }
+    },
     "identity": {
       "type": "application",
       "root": "apps/identity",
