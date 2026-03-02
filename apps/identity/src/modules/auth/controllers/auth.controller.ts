@@ -5,6 +5,7 @@ import {
   RegisterDto,
   RegisterOrganizationDto,
   LoginDto,
+  GoogleLoginDto,
 } from '@app/common/dto';
 import { Controller } from '@nestjs/common';
 
@@ -25,6 +26,11 @@ export class AuthController {
   @MessagePattern(MessagePatternEnum.IDENTITY_AUTH_LOGIN)
   async login(loginDto: LoginDto) {
     return await this.authService.login(loginDto);
+  }
+
+  @MessagePattern(MessagePatternEnum.IDENTITY_AUTH_GOOGLE_LOGIN)
+  async googleLogin(googleLoginDto: GoogleLoginDto) {
+    return await this.authService.googleLogin(googleLoginDto);
   }
 
   @MessagePattern(MessagePatternEnum.IDENTITY_AUTH_GET_ME)
