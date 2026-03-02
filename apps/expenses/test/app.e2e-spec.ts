@@ -3,22 +3,22 @@ import { INestApplication } from '@nestjs/common';
 import { ExpensesModule } from '../src/expenses.module';
 
 describe('ExpensesModule (e2e)', () => {
-    let app: INestApplication;
+  let app: INestApplication;
 
-    beforeEach(async () => {
-        const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [ExpensesModule],
-        }).compile();
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [ExpensesModule],
+    }).compile();
 
-        app = moduleFixture.createNestApplication();
-        await app.init();
-    });
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
 
-    afterEach(async () => {
-        await app.close();
-    });
+  afterEach(async () => {
+    await app.close();
+  });
 
-    it('should be defined', () => {
-        expect(app).toBeDefined();
-    });
+  it('should be defined', () => {
+    expect(app).toBeDefined();
+  });
 });

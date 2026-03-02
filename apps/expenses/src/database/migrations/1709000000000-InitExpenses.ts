@@ -1,33 +1,33 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class InitExpenses1709000000000 implements MigrationInterface {
-    name = 'InitExpenses1709000000000';
+  name = 'InitExpenses1709000000000';
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        // Enable uuid extension if not exists
-        await queryRunner.query(`
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    // Enable uuid extension if not exists
+    await queryRunner.query(`
       CREATE EXTENSION IF NOT EXISTS "uuid-ossp"
     `);
 
-        // Create wallet_type enum
-        await queryRunner.query(`
+    // Create wallet_type enum
+    await queryRunner.query(`
       CREATE TYPE "wallet_type_enum" AS ENUM ('CASH', 'BANK', 'CREDIT', 'E_WALLET', 'INVESTMENT')
     `);
 
-        // Create category_type enum
-        await queryRunner.query(`
+    // Create category_type enum
+    await queryRunner.query(`
       CREATE TYPE "category_type_enum" AS ENUM ('INCOME', 'EXPENSE')
     `);
 
-        // Create transaction_type enum
-        await queryRunner.query(`
+    // Create transaction_type enum
+    await queryRunner.query(`
       CREATE TYPE "transaction_type_enum" AS ENUM ('INCOME', 'EXPENSE')
     `);
 
-        // ============================================
-        // Table: wallets
-        // ============================================
-        await queryRunner.query(`
+    // ============================================
+    // Table: wallets
+    // ============================================
+    await queryRunner.query(`
       CREATE TABLE "wallets" (
         "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
         "user_id" uuid NOT NULL,
@@ -40,18 +40,18 @@ export class InitExpenses1709000000000 implements MigrationInterface {
       )
     `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
       CREATE INDEX "idx_wallets_user_id" ON "wallets" ("user_id")
     `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
       CREATE INDEX "idx_wallets_user_id_name" ON "wallets" ("user_id", "name")
     `);
 
-        // ============================================
-        // Table: categories
-        // ============================================
-        await queryRunner.query(`
+    // ============================================
+    // Table: categories
+    // ============================================
+    await queryRunner.query(`
       CREATE TABLE "categories" (
         "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
         "user_id" uuid NOT NULL,
@@ -65,18 +65,18 @@ export class InitExpenses1709000000000 implements MigrationInterface {
       )
     `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
       CREATE INDEX "idx_categories_user_id" ON "categories" ("user_id")
     `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
       CREATE INDEX "idx_categories_type" ON "categories" ("type")
     `);
 
-        // ============================================
-        // Table: transactions
-        // ============================================
-        await queryRunner.query(`
+    // ============================================
+    // Table: transactions
+    // ============================================
+    await queryRunner.query(`
       CREATE TABLE "transactions" (
         "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
         "user_id" uuid NOT NULL,
@@ -94,34 +94,34 @@ export class InitExpenses1709000000000 implements MigrationInterface {
       )
     `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
       CREATE INDEX "idx_transactions_user_id" ON "transactions" ("user_id")
     `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
       CREATE INDEX "idx_transactions_transaction_date" ON "transactions" ("transaction_date")
     `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
       CREATE INDEX "idx_transactions_category_id" ON "transactions" ("category_id")
     `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
       CREATE INDEX "idx_transactions_wallet_id" ON "transactions" ("wallet_id")
     `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
       CREATE INDEX "idx_transactions_type" ON "transactions" ("type")
     `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
       CREATE INDEX "idx_transactions_user_date" ON "transactions" ("user_id", "transaction_date")
     `);
 
-        // ============================================
-        // Table: budgets
-        // ============================================
-        await queryRunner.query(`
+    // ============================================
+    // Table: budgets
+    // ============================================
+    await queryRunner.query(`
       CREATE TABLE "budgets" (
         "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
         "user_id" uuid NOT NULL,
@@ -137,22 +137,22 @@ export class InitExpenses1709000000000 implements MigrationInterface {
       )
     `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
       CREATE INDEX "idx_budgets_user_id" ON "budgets" ("user_id")
     `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
       CREATE INDEX "idx_budgets_month_year" ON "budgets" ("month", "year")
     `);
-    }
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`DROP TABLE IF EXISTS "budgets" CASCADE`);
-        await queryRunner.query(`DROP TABLE IF EXISTS "transactions" CASCADE`);
-        await queryRunner.query(`DROP TABLE IF EXISTS "categories" CASCADE`);
-        await queryRunner.query(`DROP TABLE IF EXISTS "wallets" CASCADE`);
-        await queryRunner.query(`DROP TYPE IF EXISTS "transaction_type_enum"`);
-        await queryRunner.query(`DROP TYPE IF EXISTS "category_type_enum"`);
-        await queryRunner.query(`DROP TYPE IF EXISTS "wallet_type_enum"`);
-    }
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DROP TABLE IF EXISTS "budgets" CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS "transactions" CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS "categories" CASCADE`);
+    await queryRunner.query(`DROP TABLE IF EXISTS "wallets" CASCADE`);
+    await queryRunner.query(`DROP TYPE IF EXISTS "transaction_type_enum"`);
+    await queryRunner.query(`DROP TYPE IF EXISTS "category_type_enum"`);
+    await queryRunner.query(`DROP TYPE IF EXISTS "wallet_type_enum"`);
+  }
 }

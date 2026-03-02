@@ -9,7 +9,6 @@ import { AuthController } from './controllers/auth.controller';
 import { UserEntity } from '../../shareds/entities';
 import { UserModule } from '../user/user.module';
 import { OrganizationModule } from '../organization/organization.module';
-import { ENVIRONMENT } from '../../env/environment';
 
 @Module({
   imports: [
@@ -18,7 +17,10 @@ import { ENVIRONMENT } from '../../env/environment';
       inject: [ConfigService],
       useFactory: () => {
         const secret = process.env.JWT_SECRET || 'thang2026';
-        console.log('[Auth Module] JWT_SECRET:', secret ? `${secret.substring(0, 5)}***` : 'UNDEFINED');
+        console.log(
+          '[Auth Module] JWT_SECRET:',
+          secret ? `${secret.substring(0, 5)}***` : 'UNDEFINED',
+        );
         return {
           secret,
           signOptions: { expiresIn: '1h' },

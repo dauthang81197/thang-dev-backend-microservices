@@ -1,6 +1,31 @@
-import { Controller, Get, Param, HttpStatus, Post, UseInterceptors, UploadedFile, BadRequestException, Body, Query, Res, StreamableFile } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiResponse, ApiTags, ApiConsumes, ApiBody } from '@nestjs/swagger';
-import { ListBucketsCommand, HeadBucketCommand, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import {
+    Controller,
+    Get,
+    Param,
+    HttpStatus,
+    Post,
+    UseInterceptors,
+    UploadedFile,
+    BadRequestException,
+    Body,
+    Query,
+    Res,
+    StreamableFile,
+} from '@nestjs/common';
+import {
+    ApiOperation,
+    ApiParam,
+    ApiResponse,
+    ApiTags,
+    ApiConsumes,
+    ApiBody,
+} from '@nestjs/swagger';
+import {
+    ListBucketsCommand,
+    HeadBucketCommand,
+    PutObjectCommand,
+    GetObjectCommand,
+} from '@aws-sdk/client-s3';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Multer } from 'multer';
 import type { Response } from 'express';
@@ -42,7 +67,7 @@ export class MinioGatewayController {
         try {
             await this.minioService.s3.send(new HeadBucketCommand({ Bucket: name }));
             return { exists: true, name };
-        } catch (error) {
+        } catch {
             return { exists: false, name };
         }
     }
@@ -57,7 +82,10 @@ export class MinioGatewayController {
             type: 'object',
             properties: {
                 file: { type: 'string', format: 'binary' },
-                key: { type: 'string', description: 'Optional object key (filename) in bucket' },
+                key: {
+                    type: 'string',
+                    description: 'Optional object key (filename) in bucket',
+                },
             },
             required: ['file'],
         },
@@ -134,9 +162,10 @@ export class MinioGatewayController {
             throw new BadRequestException('Object body is empty');
         }
 
-        const readable = body instanceof Readable
-            ? body
-            : Readable.fromWeb(body as unknown as any);
+        const readable =
+            body instanceof Readable
+                ? body
+                : Readable.fromWeb(body as unknown as any);
 
         return new StreamableFile(readable);
     }

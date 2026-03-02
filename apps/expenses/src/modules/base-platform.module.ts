@@ -6,16 +6,16 @@ import { BudgetModule } from './budget/budget.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 
 export const BASE_PLATFORM_IMPORTS = [
-    WalletModule,
-    CategoryModule,
-    TransactionModule,
-    BudgetModule,
-    DashboardModule,
+  WalletModule,
+  CategoryModule,
+  TransactionModule,
+  BudgetModule,
+  DashboardModule,
 ];
 
 @Module({
-    imports: [...BASE_PLATFORM_IMPORTS],
-    controllers: [],
-    providers: [],
+  imports: [...BASE_PLATFORM_IMPORTS],
+  controllers: [],
+  providers: [],
 })
-export class BasePlatformModule { }
+export class BasePlatformModule {}

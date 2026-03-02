@@ -10,7 +10,12 @@ if (result.error) {
   console.error('[Course Service] Failed to load .env:', result.error.message);
 } else {
   console.log('[Course Service] .env loaded successfully');
-  console.log('[Course Service] JWT_SECRET from process.env:', process.env.JWT_SECRET ? `${process.env.JWT_SECRET.substring(0, 5)}***` : 'UNDEFINED');
+  console.log(
+    '[Course Service] JWT_SECRET from process.env:',
+    process.env.JWT_SECRET
+      ? `${process.env.JWT_SECRET.substring(0, 5)}***`
+      : 'UNDEFINED',
+  );
 }
 
 import { NestFactory } from '@nestjs/core';
@@ -20,7 +25,6 @@ import {
   initializeTransactionalContext,
   StorageDriver,
 } from 'typeorm-transactional';
-import { connectionOptions } from './database/ormconfig';
 import { ENVIRONMENT } from './env/environment';
 import { LoggingInterceptor } from '@app/common';
 
@@ -61,9 +65,18 @@ async function bootstrap() {
   await app.listen();
 
   console.log('[Course Service] Microservice is running');
-  console.log('[Course Service] Environment:', process.env.NODE_ENV || 'development');
-  console.log('[Course Service] Database:', `${ENVIRONMENT.database.host}:${ENVIRONMENT.database.port}/${ENVIRONMENT.database.dbName}`);
-  console.log('[Course Service] Redis:', `${ENVIRONMENT.redis.host}:${ENVIRONMENT.redis.port}`);
+  console.log(
+    '[Course Service] Environment:',
+    process.env.NODE_ENV || 'development',
+  );
+  console.log(
+    '[Course Service] Database:',
+    `${ENVIRONMENT.database.host}:${ENVIRONMENT.database.port}/${ENVIRONMENT.database.dbName}`,
+  );
+  console.log(
+    '[Course Service] Redis:',
+    `${ENVIRONMENT.redis.host}:${ENVIRONMENT.redis.port}`,
+  );
   console.log('[Course Service] Port:', process.env.PORT || '3003');
   console.log('[Course Service] R2 Bucket:', ENVIRONMENT.r2.bucketName);
 }

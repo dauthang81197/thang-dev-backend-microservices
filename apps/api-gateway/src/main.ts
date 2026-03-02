@@ -1,6 +1,6 @@
 // Load .env file FIRST before any imports
 import * as dotenv from 'dotenv';
-import { resolve, join } from 'path';
+import { resolve } from 'path';
 
 const envPath = resolve(process.cwd(), '.env');
 console.log('[API Gateway] Loading .env from:', envPath);
@@ -10,7 +10,12 @@ if (result.error) {
   console.error('[API Gateway] Failed to load .env:', result.error.message);
 } else {
   console.log('[API Gateway] .env loaded successfully');
-  console.log('[API Gateway] JWT_SECRET from process.env:', process.env.JWT_SECRET ? `${process.env.JWT_SECRET.substring(0, 5)}***` : 'UNDEFINED');
+  console.log(
+    '[API Gateway] JWT_SECRET from process.env:',
+    process.env.JWT_SECRET
+      ? `${process.env.JWT_SECRET.substring(0, 5)}***`
+      : 'UNDEFINED',
+  );
 }
 
 import { NestFactory } from '@nestjs/core';
@@ -55,8 +60,12 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
 
   console.log(`[API Gateway] Server running on port ${port}`);
-  console.log(`[API Gateway] Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`[API Gateway] JWT_SECRET: ${ENVIRONMENT.auth.JWT_SECRET ? `${ENVIRONMENT.auth.JWT_SECRET.substring(0, 5)}***` : 'UNDEFINED'}`);
+  console.log(
+    `[API Gateway] Environment: ${process.env.NODE_ENV || 'development'}`,
+  );
+  console.log(
+    `[API Gateway] JWT_SECRET: ${ENVIRONMENT.auth.JWT_SECRET ? `${ENVIRONMENT.auth.JWT_SECRET.substring(0, 5)}***` : 'UNDEFINED'}`,
+  );
   console.log(`[API Gateway] CORS Origin: ${corsOrigin}`);
   console.log(`[API Gateway] Swagger documentation: /docs`);
 }

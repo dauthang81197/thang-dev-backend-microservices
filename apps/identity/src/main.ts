@@ -7,10 +7,18 @@ console.log('[Identity Service] Loading .env from:', envPath);
 const result = dotenv.config({ path: envPath });
 
 if (result.error) {
-  console.error('[Identity Service] Failed to load .env:', result.error.message);
+  console.error(
+    '[Identity Service] Failed to load .env:',
+    result.error.message,
+  );
 } else {
   console.log('[Identity Service] .env loaded successfully');
-  console.log('[Identity Service] JWT_SECRET from process.env:', process.env.JWT_SECRET ? `${process.env.JWT_SECRET.substring(0, 5)}***` : 'UNDEFINED');
+  console.log(
+    '[Identity Service] JWT_SECRET from process.env:',
+    process.env.JWT_SECRET
+      ? `${process.env.JWT_SECRET.substring(0, 5)}***`
+      : 'UNDEFINED',
+  );
 }
 
 import { NestFactory } from '@nestjs/core';
@@ -20,7 +28,6 @@ import {
   initializeTransactionalContext,
   StorageDriver,
 } from 'typeorm-transactional';
-import { connectionOptions } from './database/ormconfig';
 import { ENVIRONMENT } from './env/environment';
 import { LoggingInterceptor } from '@app/common';
 
@@ -61,10 +68,24 @@ async function bootstrap() {
   await app.listen();
 
   console.log('[Identity Service] Microservice is running');
-  console.log('[Identity Service] Environment:', process.env.NODE_ENV || 'development');
-  console.log('[Identity Service] Database:', `${ENVIRONMENT.database.host}:${ENVIRONMENT.database.port}/${ENVIRONMENT.database.dbName}`);
-  console.log('[Identity Service] Redis:', `${ENVIRONMENT.redis.host}:${ENVIRONMENT.redis.port}`);
-  console.log('[Identity Service] JWT_SECRET:', ENVIRONMENT.auth.JWT_SECRET ? `${ENVIRONMENT.auth.JWT_SECRET.substring(0, 5)}***` : 'UNDEFINED');
+  console.log(
+    '[Identity Service] Environment:',
+    process.env.NODE_ENV || 'development',
+  );
+  console.log(
+    '[Identity Service] Database:',
+    `${ENVIRONMENT.database.host}:${ENVIRONMENT.database.port}/${ENVIRONMENT.database.dbName}`,
+  );
+  console.log(
+    '[Identity Service] Redis:',
+    `${ENVIRONMENT.redis.host}:${ENVIRONMENT.redis.port}`,
+  );
+  console.log(
+    '[Identity Service] JWT_SECRET:',
+    ENVIRONMENT.auth.JWT_SECRET
+      ? `${ENVIRONMENT.auth.JWT_SECRET.substring(0, 5)}***`
+      : 'UNDEFINED',
+  );
   console.log('[Identity Service] Port:', process.env.PORT || '3002');
 }
 

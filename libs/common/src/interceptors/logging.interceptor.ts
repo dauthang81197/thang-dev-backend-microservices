@@ -38,7 +38,7 @@ export class LoggingInterceptor implements NestInterceptor {
 
         return next.handle().pipe(
             tap({
-                next: (data) => {
+                next: (_data) => {
                     const endTime = Date.now();
                     const duration = endTime - startTime;
                     const statusCode = response.statusCode;
@@ -91,7 +91,10 @@ export class LoggingInterceptor implements NestInterceptor {
         for (const key of Object.keys(sanitized)) {
             if (sensitiveFields.some((field) => key.toLowerCase().includes(field))) {
                 sanitized[key] = '***REDACTED***';
-            } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
+            } else if (
+                typeof sanitized[key] === 'object' &&
+                sanitized[key] !== null
+            ) {
                 sanitized[key] = this.sanitizeBody(sanitized[key]);
             }
         }

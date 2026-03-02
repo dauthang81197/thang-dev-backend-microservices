@@ -6,7 +6,7 @@ import { CourseLearningService } from './course-learning.service';
 export class CourseLearningController {
   private readonly logger = new Logger(CourseLearningController.name);
 
-  constructor(private readonly courseLearningService: CourseLearningService) { }
+  constructor(private readonly courseLearningService: CourseLearningService) {}
 
   @MessagePattern('lesson.get')
   async getLesson(@Payload() data: { lessonId: string; userId: string }) {

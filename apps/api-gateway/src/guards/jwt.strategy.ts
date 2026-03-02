@@ -1,13 +1,15 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { ENVIRONMENT } from '../../env/environment';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
     const jwtSecret = process.env.JWT_SECRET || 'thang2026';
-    console.log('[JWT Strategy] JWT_SECRET:', jwtSecret ? `${jwtSecret.substring(0, 5)}***` : 'UNDEFINED');
+    console.log(
+      '[JWT Strategy] JWT_SECRET:',
+      jwtSecret ? `${jwtSecret.substring(0, 5)}***` : 'UNDEFINED',
+    );
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -16,7 +18,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    console.log('[JWT Strategy] Validating token payload:', JSON.stringify(payload));
+    console.log(
+      '[JWT Strategy] Validating token payload:',
+      JSON.stringify(payload),
+    );
 
     if (!payload || !payload.sub) {
       console.error('[JWT Strategy] Invalid payload - missing sub');

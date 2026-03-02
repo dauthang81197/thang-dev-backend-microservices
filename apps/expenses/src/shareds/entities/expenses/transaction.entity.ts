@@ -1,13 +1,7 @@
-import {
-    Entity,
-    Column,
-    ManyToOne,
-    JoinColumn,
-    Index,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { BaseEntity } from '../base.entity';
 import { WalletEntity } from './wallet.entity';
-import { CategoryEntity, CategoryType } from './category.entity';
+import { CategoryEntity } from './category.entity';
 
 export enum TransactionType {
     INCOME = 'INCOME',

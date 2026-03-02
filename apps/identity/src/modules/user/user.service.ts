@@ -36,8 +36,11 @@ export class UserService {
     });
   }
 
-  async findOrCreateGoogleUser(googleLoginDto: GoogleLoginDto): Promise<UserEntity> {
-    const { googleId, email, firstName, lastName, fullName, avatar } = googleLoginDto;
+  async findOrCreateGoogleUser(
+    googleLoginDto: GoogleLoginDto,
+  ): Promise<UserEntity> {
+    const { googleId, email, firstName, lastName, fullName, avatar } =
+      googleLoginDto;
 
     // 1. Try to find by googleId
     let user = await this.findByGoogleId(googleId);

@@ -1,8 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { TransactionEntity, TransactionType } from '../../shareds/entities/expenses/transaction.entity';
-import { WalletEntity, WalletType } from '../../shareds/entities/expenses/wallet.entity';
+import {
+    TransactionEntity,
+    TransactionType,
+} from '../../shareds/entities/expenses/transaction.entity';
+import { WalletEntity } from '../../shareds/entities/expenses/wallet.entity';
 
 @Injectable()
 export class DashboardService {
@@ -192,7 +195,12 @@ export class DashboardService {
             months.push({ month: m, year: y, label: monthNames[m - 1] });
         }
 
-        const result: { month: string; year: number; income: number; expense: number }[] = [];
+        const result: {
+            month: string;
+            year: number;
+            income: number;
+            expense: number;
+        }[] = [];
 
         for (const { month, year, label } of months) {
             const startDate = new Date(year, month - 1, 1);
