@@ -21,7 +21,7 @@ export const ENVIRONMENT = {
     url: process.env.FRONTEND_URL || 'http://localhost:5173',
   },
   redis: {
-    host: process.env.REDIS_HOST || '43.205.220.161',
+    host: process.env.REDIS_HOST || '144.91.120.200',
     port: parseInt(process.env.REDIS_PORT || '6379'),
   },
   r2: {
