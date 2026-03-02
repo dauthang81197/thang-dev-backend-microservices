@@ -13,6 +13,7 @@ import { LessonGatewayController } from './controllers/course/lesson-gateway.con
 import { HealthController } from './controllers/health.controller';
 import { MinioGatewayController } from './controllers/storage/minio-gateway.controller';
 import { JwtStrategy } from './guards/jwt.strategy';
+import { GoogleStrategy } from './guards/google.strategy';
 import { MinioService } from './services/minio.service';
 import { ENVIRONMENT } from '../env/environment';
 
@@ -89,6 +90,6 @@ export const CONTROLLER_STORAGE = [MinioGatewayController];
     ...CONTROLLER_COURSE,
     ...CONTROLLER_STORAGE,
   ],
-  providers: [JwtStrategy, MinioService],
+  providers: [JwtStrategy, GoogleStrategy, MinioService],
 })
 export class ApiGatewayModule {}

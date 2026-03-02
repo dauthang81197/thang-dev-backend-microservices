@@ -12,6 +12,7 @@ import {
   RegisterDto,
   RegisterOrganizationDto,
   LoginDto,
+  GoogleLoginDto,
 } from '@app/common/dto';
 import { UserService } from '../user/user.service';
 import { OrganizationService } from '../organization/organization.service';
@@ -119,6 +120,38 @@ export class AuthService {
         throw err;
       }
       throw new BadRequestException('Login failed');
+    }
+  }
+
+  async googleLogin(googleLoginDto: GoogleLoginDto) {
+    this.logger.log('Function googleLogin start !!!');
+
+    try {
+      // Find or create user from Google profile
+      const user =
+        await this.userService.findOrCreateGoogleUser(googleLoginDto);
+
+      // Generate JWT token
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        organizationId: user.organizationId || null,
+      };
+
+      const accessToken = this.jwtService.sign(payload, {
+        expiresIn: '7d',
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { passwordHash, ...userWithoutPassword } = user;
+
+      return {
+        accessToken,
+        user: userWithoutPassword,
+      };
+    } catch (err) {
+      this.logger.error(err);
+      throw new BadRequestException('Google login failed');
     }
   }
 

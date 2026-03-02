@@ -1,5 +1,6 @@
 export * from './forget-password.dto';
 export * from './check-oraganization.dto';
+export * from './google-login.dto';
 export * from './login.dto';
 export * from './login-response.dto';
 export * from './refresh-token.dto';
