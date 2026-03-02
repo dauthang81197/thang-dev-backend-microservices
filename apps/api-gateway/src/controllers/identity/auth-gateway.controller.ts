@@ -37,7 +37,7 @@ import { ENVIRONMENT } from '../../../env/environment';
 export class AuthGatewayController {
   private readonly logger = new Logger(AuthGatewayController.name);
 
-  constructor(@Inject('IDENTITY_SERVICE') private usersClient: ClientProxy) { }
+  constructor(@Inject('IDENTITY_SERVICE') private usersClient: ClientProxy) {}
 
   @Post('/register')
   @HttpCode(HttpStatus.CREATED)
@@ -84,14 +84,18 @@ export class AuthGatewayController {
     description: 'Invalid email or password',
   })
   async login(@Body() loginDto: LoginDto) {
-    console.log('[Auth Gateway] Login request received:', { email: loginDto.email });
+    console.log('[Auth Gateway] Login request received:', {
+      email: loginDto.email,
+    });
 
-    const result = await this.usersClient.send(
-      MessagePatternEnum.IDENTITY_AUTH_LOGIN,
-      loginDto,
-    ).toPromise();
+    const result = await this.usersClient
+      .send(MessagePatternEnum.IDENTITY_AUTH_LOGIN, loginDto)
+      .toPromise();
 
-    console.log('[Auth Gateway] Login response:', result ? 'SUCCESS' : 'FAILED');
+    console.log(
+      '[Auth Gateway] Login response:',
+      result ? 'SUCCESS' : 'FAILED',
+    );
     return result;
   }
 
@@ -103,7 +107,6 @@ export class AuthGatewayController {
     status: HttpStatus.FOUND,
     description: 'Redirect to Google OAuth consent screen',
   })
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   async googleAuth() {
     // Guard redirects to Google automatically
   }
@@ -152,9 +155,7 @@ export class AuthGatewayController {
     } catch (error) {
       this.logger.error('[Auth Gateway] Google login failed:', error);
       const frontendUrl = ENVIRONMENT.frontend.url;
-      return res.redirect(
-        `${frontendUrl}/auth/login?error=google_auth_failed`,
-      );
+      return res.redirect(`${frontendUrl}/auth/login?error=google_auth_failed`);
     }
   }
 
@@ -174,7 +175,7 @@ export class AuthGatewayController {
   })
   getCurrentUser(@Request() req: any) {
     const userId = req.user?.id;
-    console.log(req.user, "àdslkjf");
+    console.log(req.user, 'àdslkjf');
     if (!userId) {
       throw new Error('User ID not found in request');
     }

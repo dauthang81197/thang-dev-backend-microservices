@@ -8,28 +8,28 @@ import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 
 @Module({
-    imports: [
-        ConfigModule.forRoot({
-            isGlobal: true,
-            envFilePath: [
-                join(__dirname, '../../../.env'),
-                join(__dirname, '../../../../.env'),
-            ],
-        }),
-        TypeOrmModule.forRootAsync({
-            useFactory() {
-                return connectionOptions;
-            },
-            async dataSourceFactory(options) {
-                if (!options) {
-                    throw new Error('Invalid options passed');
-                }
-                return addTransactionalDataSource(new DataSource(options));
-            },
-        }),
-        BasePlatformModule,
-    ],
-    controllers: [],
-    providers: [],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: [
+        join(__dirname, '../../../.env'),
+        join(__dirname, '../../../../.env'),
+      ],
+    }),
+    TypeOrmModule.forRootAsync({
+      useFactory() {
+        return connectionOptions;
+      },
+      async dataSourceFactory(options) {
+        if (!options) {
+          throw new Error('Invalid options passed');
+        }
+        return addTransactionalDataSource(new DataSource(options));
+      },
+    }),
+    BasePlatformModule,
+  ],
+  controllers: [],
+  providers: [],
 })
-export class ExpensesModule { }
+export class ExpensesModule {}

@@ -32,4 +32,3 @@ export class GoogleLoginDto {
   @IsString()
   avatar?: string;
 }
-

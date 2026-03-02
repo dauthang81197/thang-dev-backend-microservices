@@ -29,7 +29,7 @@ import {
 export class LessonGatewayController {
   constructor(
     @Inject('COURSE_SERVICE') private readonly courseClient: ClientProxy,
-  ) { }
+  ) {}
 
   @Get(':lessonId')
   @UseGuards(JwtAuthGuard)

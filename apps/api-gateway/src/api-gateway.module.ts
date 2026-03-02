@@ -122,4 +122,4 @@ export const CONTROLLER_EXPENSES = [
   ],
   providers: [JwtStrategy, GoogleStrategy, MinioService],
 })
-export class ApiGatewayModule { }
+export class ApiGatewayModule {}

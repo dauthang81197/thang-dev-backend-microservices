@@ -26,7 +26,7 @@ export class AuthService {
     private userService: UserService,
     private organizationService: OrganizationService,
     private jwtService: JwtService,
-  ) { }
+  ) {}
 
   private readonly logger = new Logger(AuthService.name);
 
@@ -100,7 +100,10 @@ export class AuthService {
       };
 
       const jwtSecret = process.env.JWT_SECRET || 'supersecret';
-      console.log('[Auth Service] Creating token with JWT_SECRET:', jwtSecret ? `${jwtSecret.substring(0, 5)}***` : 'UNDEFINED');
+      console.log(
+        '[Auth Service] Creating token with JWT_SECRET:',
+        jwtSecret ? `${jwtSecret.substring(0, 5)}***` : 'UNDEFINED',
+      );
 
       const accessToken = this.jwtService.sign(payload, {
         expiresIn: loginDto.rememberMe ? '7d' : '1h',

@@ -70,9 +70,6 @@ export class AddGoogleOAuthColumns1709337600000 implements MigrationInterface {
     await queryRunner.dropColumn('users', 'avatar');
     await queryRunner.dropColumn('users', 'google_id');
 
-    await queryRunner.query(
-      `DROP TYPE "public"."users_auth_provider_enum"`,
-    );
+    await queryRunner.query(`DROP TYPE "public"."users_auth_provider_enum"`);
   }
 }
-
