@@ -32,41 +32,41 @@ services:
       retries: 3
       start_period: 40s
 
-  # Course Microservice
-  course-service:
-    image: course-service:latest
-    container_name: course-service
-    restart: unless-stopped
-    build:
-      context: .
-      dockerfile: apps/course/Dockerfile
-    env_file:
-      - .env
-    environment:
-      NODE_ENV: production
-      PORT: 3003
-      # Database - sẽ connect đến PostgreSQL đã cài trên EC2
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME_COURSE: ${DB_NAME_COURSE}
-      # Redis - sẽ connect đến Redis đã cài trên EC2
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
-      # Cloudflare R2
-      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID}
-      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
-      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
-      R2_BUCKET_NAME: ${R2_BUCKET_NAME}
-      R2_PUBLIC_URL: ${R2_PUBLIC_URL}
-    network_mode: host
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+  # # Course Microservice (disabled - not in use)
+  # course-service:
+  #   image: course-service:latest
+  #   container_name: course-service
+  #   restart: unless-stopped
+  #   build:
+  #     context: .
+  #     dockerfile: apps/course/Dockerfile
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     NODE_ENV: production
+  #     PORT: 3003
+  #     # Database - sẽ connect đến PostgreSQL đã cài trên EC2
+  #     DB_HOST: ${DB_HOST}
+  #     DB_PORT: ${DB_PORT}
+  #     DB_USER: ${DB_USER}
+  #     DB_PASSWORD: ${DB_PASSWORD}
+  #     DB_NAME_COURSE: ${DB_NAME_COURSE}
+  #     # Redis - sẽ connect đến Redis đã cài trên EC2
+  #     REDIS_HOST: ${REDIS_HOST}
+  #     REDIS_PORT: ${REDIS_PORT}
+  #     # Cloudflare R2
+  #     R2_ACCOUNT_ID: ${R2_ACCOUNT_ID}
+  #     R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+  #     R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+  #     R2_BUCKET_NAME: ${R2_BUCKET_NAME}
+  #     R2_PUBLIC_URL: ${R2_PUBLIC_URL}
+  #   network_mode: host
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
 
   # Expenses Microservice
   expenses-service:
