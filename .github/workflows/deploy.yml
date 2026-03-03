@@ -209,7 +209,7 @@ jobs:
             echo "⏳ Waiting for services to start..."
             sleep 30
 
-            # Check if all containers are running (3 microservices only)
+            # Check if all containers are running (3 microservices + 1 API gateway)
             CONTAINERS_UP=$(docker compose -f docker-compose.prod.yml ps --filter "status=running" --format json 2>/dev/null | wc -l || echo "0")
             EXPECTED_CONTAINERS=4
 

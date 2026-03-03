@@ -68,6 +68,38 @@ services:
       retries: 3
       start_period: 40s
 
+  # Expenses Microservice
+  expenses-service:
+    image: expenses-service:latest
+    container_name: expenses-service
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: apps/expenses/Dockerfile
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 3004
+      # Database - sẽ connect đến PostgreSQL đã cài trên EC2
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME_EXPENSES: ${DB_NAME_EXPENSES}
+      # Redis - sẽ connect đến Redis đã cài trên EC2
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+    network_mode: host
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   # API Gateway
   api-gateway:
     image: course-api-gateway:latest
