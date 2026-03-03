@@ -92,10 +92,10 @@ jobs:
           echo "🔍 Checking for main.js..."
           docker run --rm course-identity:latest find /app -name "main.js" || echo "❌ No main.js found"
 
-      - name: Build Course Service Image
-        run: |
-          docker build -f apps/course/Dockerfile -t course-service:latest .
-          docker save course-service:latest | gzip > course-service.tar.gz
+      # - name: Build Course Service Image (disabled - not in use)
+      #   run: |
+      #     docker build -f apps/course/Dockerfile -t course-service:latest .
+      #     docker save course-service:latest | gzip > course-service.tar.gz
 
       - name: Build Expenses Service Image
         run: |
@@ -143,7 +143,6 @@ jobs:
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
             api-gateway.tar.gz \
             identity-service.tar.gz \
-            course-service.tar.gz \
             expenses-service.tar.gz \
             docker-compose.prod.yml \
             ${{ env.VPS_USER }}@${{ env.VPS_HOST }}:~/course-backend/
@@ -168,7 +167,7 @@ jobs:
 
             # Remove old images to ensure clean load
             echo "🗑️ Removing old images..."
-            docker rmi course-api-gateway:latest course-identity:latest course-service:latest expenses-service:latest 2>/dev/null || true
+            docker rmi course-api-gateway:latest course-identity:latest expenses-service:latest 2>/dev/null || true
 
             # Load Docker images
             echo "📦 Loading API Gateway image..."
@@ -177,8 +176,8 @@ jobs:
             echo "📦 Loading Identity Service image..."
             docker load < identity-service.tar.gz
             
-            echo "📦 Loading Course Service image..."
-            docker load < course-service.tar.gz
+            # echo "📦 Loading Course Service image..." (disabled - not in use)
+            # docker load < course-service.tar.gz
 
             echo "📦 Loading Expenses Service image..."
             docker load < expenses-service.tar.gz
@@ -211,7 +210,7 @@ jobs:
 
             # Check if all containers are running (3 microservices + 1 API gateway)
             CONTAINERS_UP=$(docker compose -f docker-compose.prod.yml ps --filter "status=running" --format json 2>/dev/null | wc -l || echo "0")
-            EXPECTED_CONTAINERS=4
+            EXPECTED_CONTAINERS=3
 
             echo "📊 Container status:"
             docker compose -f docker-compose.prod.yml ps
@@ -235,9 +234,9 @@ jobs:
               echo "=== IDENTITY SERVICE LOGS ==="
               docker compose -f docker-compose.prod.yml logs --tail=50 identity-service
               echo ""
-              echo "=== COURSE SERVICE LOGS ==="
-              docker compose -f docker-compose.prod.yml logs --tail=50 course-service
-              echo ""
+              # echo "=== COURSE SERVICE LOGS ===" (disabled - not in use)
+              # docker compose -f docker-compose.prod.yml logs --tail=50 course-service
+              # echo ""
               echo "=== EXPENSES SERVICE LOGS ==="
               docker compose -f docker-compose.prod.yml logs --tail=50 expenses-service
               echo ""
