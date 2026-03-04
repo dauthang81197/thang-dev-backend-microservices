@@ -92,10 +92,32 @@ jobs:
           echo "flower=$FL_CHANGED" >> $GITHUB_OUTPUT
           echo "any-service=$ANY_SERVICE" >> $GITHUB_OUTPUT
 
-  # ======== JOB 2: Build and Deploy ========
-  build-and-deploy:
+  # ======== JOB 2: Lint ========
+  lint:
     runs-on: ubuntu-latest
     needs: detect-changes
+    if: needs.detect-changes.outputs.any-service == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+  # ======== JOB 3: Build Docker Images ========
+  build:
+    runs-on: ubuntu-latest
+    needs: [detect-changes, lint]
     if: needs.detect-changes.outputs.any-service == 'true'
 
     steps:
@@ -109,21 +131,6 @@ jobs:
           echo "  Identity:    ${{ needs.detect-changes.outputs.identity }}"
           echo "  Flower:      ${{ needs.detect-changes.outputs.flower }}"
 
-      # -------- LINT CHECK --------
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run lint
-        run: npm run lint
-        continue-on-error: true
-
-      # -------- BUILD DOCKER IMAGES (only changed services) --------
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -158,9 +165,39 @@ jobs:
           docker save flower-service:latest | gzip > flower-service.tar.gz
           echo "✅ Flower Service image built"
 
-      # -------- DEPLOY (CHỈ KHI PUSH) --------
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-images
+          retention-days: 1
+          path: |
+            *.tar.gz
+            docker-compose.prod.yml
+
+  # ======== JOB 4: Deploy to VPS ========
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build]
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-images
+
+      - name: Show deploy plan
+        run: |
+          echo "🚀 Deploy plan:"
+          echo "  API Gateway: ${{ needs.detect-changes.outputs.api-gateway }}"
+          echo "  Identity:    ${{ needs.detect-changes.outputs.identity }}"
+          echo "  Flower:      ${{ needs.detect-changes.outputs.flower }}"
+          echo ""
+          echo "📦 Artifacts downloaded:"
+          ls -lh *.tar.gz 2>/dev/null || echo "  (no images)"
+          ls -lh docker-compose.prod.yml 2>/dev/null || echo "  (no compose file)"
+
       - name: Prepare SSH key
-        if: ${{ github.event_name == 'push' }}
         env:
           SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
@@ -177,10 +214,11 @@ jobs:
           ssh-keyscan -H ${{ env.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
 
           echo "🔑 Testing SSH connection..."
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=10 ${{ env.VPS_USER }}@${{ env.VPS_HOST }} "echo '✅ SSH connection successful'" || { echo "❌ SSH connection failed!"; exit 1; }
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=10 \
+            ${{ env.VPS_USER }}@${{ env.VPS_HOST }} "echo '✅ SSH connection successful'" \
+            || { echo "❌ SSH connection failed!"; exit 1; }
 
       - name: Copy changed images to VPS
-        if: ${{ github.event_name == 'push' }}
         run: |
           SSH_CMD="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
           SCP_CMD="scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
@@ -207,7 +245,6 @@ jobs:
           fi
 
       - name: Deploy changed services on VPS
-        if: ${{ github.event_name == 'push' }}
         run: |
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} \
             CHANGED_GW=${{ needs.detect-changes.outputs.api-gateway }} \
@@ -271,7 +308,6 @@ jobs:
           ENDSSH
 
       - name: Verify deployment
-        if: ${{ github.event_name == 'push' }}
         run: |
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} << 'ENDSSH'
             cd ~/course-backend
@@ -317,7 +353,7 @@ jobs:
             echo "❌ Deployment failed!"
           fi
 
-  # ======== JOB 3: Skip when no service changes ========
+  # ======== JOB 5: Skip when no service changes ========
   no-changes:
     runs-on: ubuntu-latest
     needs: detect-changes
