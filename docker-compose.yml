@@ -114,14 +114,14 @@ services:
   #     retries: 3
   #     start_period: 40s
 
-  # Expenses Microservice
-  expenses-service:
-    image: expenses-service:latest
-    container_name: expenses-service
+  # Flower Microservice
+  flower-service:
+    image: flower-service:latest
+    container_name: flower-service
     restart: unless-stopped
     build:
       context: .
-      dockerfile: apps/expenses/Dockerfile
+      dockerfile: apps/flower/Dockerfile
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3004
@@ -130,7 +130,7 @@ services:
       DB_PORT: 5432
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      DB_NAME_EXPENSES: ${DB_NAME_EXPENSES:-expenses}
+      DB_NAME_FLOWER: ${DB_NAME_FLOWER:-expenses}
       # Redis
       REDIS_HOST: redis
       REDIS_PORT: 6379

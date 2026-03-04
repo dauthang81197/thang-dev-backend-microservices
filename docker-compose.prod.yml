@@ -68,14 +68,14 @@ services:
   #     retries: 3
   #     start_period: 40s
 
-  # Expenses Microservice
-  expenses-service:
-    image: expenses-service:latest
-    container_name: expenses-service
+  # Flower Microservice
+  flower-service:
+    image: flower-service:latest
+    container_name: flower-service
     restart: unless-stopped
     build:
       context: .
-      dockerfile: apps/expenses/Dockerfile
+      dockerfile: apps/flower/Dockerfile
     env_file:
       - .env
     environment:
@@ -86,7 +86,7 @@ services:
       DB_PORT: ${DB_PORT}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME_EXPENSES: ${DB_NAME_EXPENSES}
+      DB_NAME_FLOWER: ${DB_NAME_FLOWER}
       # Redis - sẽ connect đến Redis đã cài trên EC2
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
