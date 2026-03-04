@@ -16,10 +16,19 @@ export class CreateBudgetDto {
   categoryId!: string;
 
   @ApiProperty({ example: 500.0, description: 'Budget amount' })
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   @Min(0.01)
-  amount!: number;
+  amount?: number;
+
+  @ApiPropertyOptional({
+    example: 500.0,
+    description: 'Budget amount (alias for amount)',
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0.01)
+  budgetAmount?: number;
 
   @ApiProperty({ example: 1, description: 'Month (1-12)' })
   @IsNotEmpty()
