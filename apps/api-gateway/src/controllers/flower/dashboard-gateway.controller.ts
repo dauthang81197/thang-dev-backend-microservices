@@ -22,9 +22,7 @@ import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class DashboardGatewayController {
-  constructor(
-    @Inject('FLOWER_SERVICE') private flowerClient: ClientProxy,
-  ) {}
+  constructor(@Inject('FLOWER_SERVICE') private flowerClient: ClientProxy) {}
 
   @Get('overview')
   @ApiOperation({ summary: 'Get expense dashboard overview' })

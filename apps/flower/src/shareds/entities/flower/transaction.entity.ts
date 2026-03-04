@@ -4,8 +4,8 @@ import { WalletEntity } from './wallet.entity';
 import { CategoryEntity } from './category.entity';
 
 export enum TransactionType {
-    INCOME = 'INCOME',
-    EXPENSE = 'EXPENSE',
+  INCOME = 'INCOME',
+  EXPENSE = 'EXPENSE',
 }
 
 @Entity('transactions')
@@ -16,47 +16,47 @@ export enum TransactionType {
 @Index('idx_transactions_type', ['type'])
 @Index('idx_transactions_user_date', ['userId', 'transactionDate'])
 export class TransactionEntity extends BaseEntity {
-    @Column({ name: 'user_id', type: 'uuid' })
-    userId!: string;
+  @Column({ name: 'user_id', type: 'uuid' })
+  userId!: string;
 
-    @Column({ name: 'wallet_id', type: 'uuid' })
-    walletId!: string;
+  @Column({ name: 'wallet_id', type: 'uuid' })
+  walletId!: string;
 
-    @Column({ name: 'category_id', type: 'uuid' })
-    categoryId!: string;
+  @Column({ name: 'category_id', type: 'uuid' })
+  categoryId!: string;
 
-    @Column({
-        type: 'enum',
-        enum: TransactionType,
-    })
-    type!: TransactionType;
+  @Column({
+    type: 'enum',
+    enum: TransactionType,
+  })
+  type!: TransactionType;
 
-    @Column({
-        type: 'decimal',
-        precision: 15,
-        scale: 2,
-    })
-    amount!: number;
+  @Column({
+    type: 'decimal',
+    precision: 15,
+    scale: 2,
+  })
+  amount!: number;
 
-    @Column({ type: 'text', nullable: true })
-    description!: string;
+  @Column({ type: 'text', nullable: true })
+  description!: string;
 
-    @Column({
-        name: 'transaction_date',
-        type: 'timestamp',
-        default: () => 'CURRENT_TIMESTAMP',
-    })
-    transactionDate!: Date;
+  @Column({
+    name: 'transaction_date',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  transactionDate!: Date;
 
-    @ManyToOne(() => WalletEntity, (wallet) => wallet.transactions, {
-        onDelete: 'CASCADE',
-    })
-    @JoinColumn({ name: 'wallet_id' })
-    wallet!: WalletEntity;
+  @ManyToOne(() => WalletEntity, (wallet) => wallet.transactions, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'wallet_id' })
+  wallet!: WalletEntity;
 
-    @ManyToOne(() => CategoryEntity, (category) => category.transactions, {
-        onDelete: 'CASCADE',
-    })
-    @JoinColumn({ name: 'category_id' })
-    category!: CategoryEntity;
+  @ManyToOne(() => CategoryEntity, (category) => category.transactions, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'category_id' })
+  category!: CategoryEntity;
 }

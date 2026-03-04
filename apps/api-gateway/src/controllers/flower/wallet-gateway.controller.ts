@@ -27,9 +27,7 @@ import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class WalletGatewayController {
-  constructor(
-    @Inject('FLOWER_SERVICE') private flowerClient: ClientProxy,
-  ) {}
+  constructor(@Inject('FLOWER_SERVICE') private flowerClient: ClientProxy) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)

@@ -17,6 +17,9 @@ import { TransactionGatewayController } from './controllers/flower/transaction-g
 import { WalletGatewayController } from './controllers/flower/wallet-gateway.controller';
 import { CategoryGatewayController } from './controllers/flower/category-gateway.controller';
 import { BudgetGatewayController } from './controllers/flower/budget-gateway.controller';
+import { TaskGatewayController } from './controllers/flower/task-gateway.controller';
+import { TagGatewayController } from './controllers/flower/tag-gateway.controller';
+import { TaskSettingsGatewayController } from './controllers/flower/task-settings-gateway.controller';
 import { JwtStrategy } from './guards/jwt.strategy';
 import { GoogleStrategy } from './guards/google.strategy';
 import { MinioService } from './services/minio.service';
@@ -44,6 +47,9 @@ export const CONTROLLER_FLOWER = [
   WalletGatewayController,
   CategoryGatewayController,
   BudgetGatewayController,
+  TaskGatewayController,
+  TagGatewayController,
+  TaskSettingsGatewayController,
 ];
 
 @Module({
