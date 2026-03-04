@@ -19,7 +19,7 @@ export class TaskService {
     private readonly taskRepository: Repository<TaskEntity>,
     @InjectRepository(TagEntity)
     private readonly tagRepository: Repository<TagEntity>,
-  ) {}
+  ) { }
 
   async create(userId: string, dto: CreateTaskDto): Promise<TaskEntity> {
     const task = this.taskRepository.create({
@@ -144,8 +144,8 @@ export class TaskService {
     return { message: 'Task deleted successfully' };
   }
 
-  async getTodayTasks(userId: string) {
-    const now = new Date();
+  async getTodayTasks(userId: string, date: Date) {
+    const now = new Date(date);
     const startOfDay = new Date(
       now.getFullYear(),
       now.getMonth(),
