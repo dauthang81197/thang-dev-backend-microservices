@@ -39,7 +39,7 @@ export class CourseLearningService {
     private readonly transcriptRepository: Repository<Transcript>,
     private readonly dataSource: DataSource,
     private readonly minioStorageService: MinioStorageService,
-  ) { }
+  ) {}
 
   /**
    * Get lesson detail with access control
@@ -116,13 +116,13 @@ export class CourseLearningService {
       canAccess,
       transcript: lesson.transcript
         ? {
-          content: lesson.transcript.content,
-          segments: lesson.transcript.segments || [],
-          language: lesson.transcript.language,
-          source: lesson.transcript.source,
-          duration: lesson.transcript.duration,
-          wordCount: lesson.transcript.wordCount,
-        }
+            content: lesson.transcript.content,
+            segments: lesson.transcript.segments || [],
+            language: lesson.transcript.language,
+            source: lesson.transcript.source,
+            duration: lesson.transcript.duration,
+            wordCount: lesson.transcript.wordCount,
+          }
         : null,
     };
   }

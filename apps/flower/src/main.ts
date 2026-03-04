@@ -7,10 +7,7 @@ console.log('[Flower Service] Loading .env from:', envPath);
 const result = dotenv.config({ path: envPath });
 
 if (result.error) {
-  console.error(
-    '[Flower Service] Failed to load .env:',
-    result.error.message,
-  );
+  console.error('[Flower Service] Failed to load .env:', result.error.message);
 } else {
   console.log('[Flower Service] .env loaded successfully');
 }

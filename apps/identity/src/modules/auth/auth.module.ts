@@ -35,4 +35,4 @@ import { OrganizationModule } from '../organization/organization.module';
   providers: [AuthService, ConfigService],
   exports: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}
