@@ -53,13 +53,13 @@
         "tsConfigPath": "libs/database/tsconfig.lib.json"
       }
     },
-    "expenses": {
+    "flower": {
       "type": "application",
-      "root": "apps/expenses",
+      "root": "apps/flower",
       "entryFile": "main",
-      "sourceRoot": "apps/expenses/src",
+      "sourceRoot": "apps/flower/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/expenses/tsconfig.app.json"
+        "tsConfigPath": "apps/flower/tsconfig.app.json"
       }
     },
     "identity": {

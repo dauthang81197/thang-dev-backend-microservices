@@ -12,11 +12,11 @@ import { CourseAdminGatewayController } from './controllers/course/course-admin-
 import { LessonGatewayController } from './controllers/course/lesson-gateway.controller';
 import { HealthController } from './controllers/health.controller';
 import { MinioGatewayController } from './controllers/storage/minio-gateway.controller';
-import { DashboardGatewayController } from './controllers/expenses/dashboard-gateway.controller';
-import { TransactionGatewayController } from './controllers/expenses/transaction-gateway.controller';
-import { WalletGatewayController } from './controllers/expenses/wallet-gateway.controller';
-import { CategoryGatewayController } from './controllers/expenses/category-gateway.controller';
-import { BudgetGatewayController } from './controllers/expenses/budget-gateway.controller';
+import { DashboardGatewayController } from './controllers/flower/dashboard-gateway.controller';
+import { TransactionGatewayController } from './controllers/flower/transaction-gateway.controller';
+import { WalletGatewayController } from './controllers/flower/wallet-gateway.controller';
+import { CategoryGatewayController } from './controllers/flower/category-gateway.controller';
+import { BudgetGatewayController } from './controllers/flower/budget-gateway.controller';
 import { JwtStrategy } from './guards/jwt.strategy';
 import { GoogleStrategy } from './guards/google.strategy';
 import { MinioService } from './services/minio.service';
@@ -38,7 +38,7 @@ export const CONTROLLER_COURSE = [
 
 export const CONTROLLER_STORAGE = [MinioGatewayController];
 
-export const CONTROLLER_EXPENSES = [
+export const CONTROLLER_FLOWER = [
   DashboardGatewayController,
   TransactionGatewayController,
   WalletGatewayController,
@@ -96,7 +96,7 @@ export const CONTROLLER_EXPENSES = [
         },
       },
       {
-        name: 'EXPENSES_SERVICE',
+        name: 'FLOWER_SERVICE',
         transport: Transport.REDIS,
         options: {
           host: ENVIRONMENT.redis.host || 'localhost',
@@ -118,7 +118,7 @@ export const CONTROLLER_EXPENSES = [
     ...CONTROLLER_IDENTITY,
     ...CONTROLLER_COURSE,
     ...CONTROLLER_STORAGE,
-    ...CONTROLLER_EXPENSES,
+    ...CONTROLLER_FLOWER,
   ],
   providers: [JwtStrategy, GoogleStrategy, MinioService],
 })

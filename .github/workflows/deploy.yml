@@ -97,10 +97,10 @@ jobs:
       #     docker build -f apps/course/Dockerfile -t course-service:latest .
       #     docker save course-service:latest | gzip > course-service.tar.gz
 
-      - name: Build Expenses Service Image
+      - name: Build Flower Service Image
         run: |
-          docker build -f apps/expenses/Dockerfile -t expenses-service:latest .
-          docker save expenses-service:latest | gzip > expenses-service.tar.gz
+          docker build -f apps/flower/Dockerfile -t flower-service:latest .
+          docker save flower-service:latest | gzip > flower-service.tar.gz
 
       # -------- DEPLOY (CHỈ KHI PUSH) --------
       - name: Prepare SSH key
@@ -143,7 +143,7 @@ jobs:
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
             api-gateway.tar.gz \
             identity-service.tar.gz \
-            expenses-service.tar.gz \
+            flower-service.tar.gz \
             docker-compose.prod.yml \
             ${{ env.VPS_USER }}@${{ env.VPS_HOST }}:~/course-backend/
 
@@ -167,7 +167,7 @@ jobs:
 
             # Remove old images to ensure clean load
             echo "🗑️ Removing old images..."
-            docker rmi course-api-gateway:latest course-identity:latest expenses-service:latest 2>/dev/null || true
+            docker rmi course-api-gateway:latest course-identity:latest flower-service:latest 2>/dev/null || true
 
             # Load Docker images
             echo "📦 Loading API Gateway image..."
@@ -179,8 +179,8 @@ jobs:
             # echo "📦 Loading Course Service image..." (disabled - not in use)
             # docker load < course-service.tar.gz
 
-            echo "📦 Loading Expenses Service image..."
-            docker load < expenses-service.tar.gz
+            echo "📦 Loading Flower Service image..."
+            docker load < flower-service.tar.gz
             
             # Clean up tar files
             rm -f *.tar.gz
@@ -210,7 +210,7 @@ jobs:
 
             # Check if all containers are running (3 microservices + 1 API gateway)
             CONTAINERS_UP=$(docker compose -f docker-compose.prod.yml ps --filter "status=running" --format json 2>/dev/null | wc -l || echo "0")
-            EXPECTED_CONTAINERS=3
+            EXPECTED_CONTAINERS=4
 
             echo "📊 Container status:"
             docker compose -f docker-compose.prod.yml ps
@@ -237,8 +237,8 @@ jobs:
               # echo "=== COURSE SERVICE LOGS ===" (disabled - not in use)
               # docker compose -f docker-compose.prod.yml logs --tail=50 course-service
               # echo ""
-              echo "=== EXPENSES SERVICE LOGS ==="
-              docker compose -f docker-compose.prod.yml logs --tail=50 expenses-service
+              echo "=== FLOWER SERVICE LOGS ==="
+              docker compose -f docker-compose.prod.yml logs --tail=50 flower-service
               echo ""
               echo "=== API GATEWAY LOGS ==="
               docker compose -f docker-compose.prod.yml logs --tail=50 api-gateway
