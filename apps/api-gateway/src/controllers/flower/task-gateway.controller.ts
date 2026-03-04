@@ -29,7 +29,7 @@ import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class TaskGatewayController {
-  constructor(@Inject('FLOWER_SERVICE') private flowerClient: ClientProxy) {}
+  constructor(@Inject('FLOWER_SERVICE') private flowerClient: ClientProxy) { }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -92,6 +92,7 @@ export class TaskGatewayController {
   async getTodayTasks(@Request() req: any) {
     return this.flowerClient.send('flower.tasks.today', {
       userId: req.user.id,
+      date: req.query.date ? new Date(req.query.date) : new Date(),
     });
   }
 
