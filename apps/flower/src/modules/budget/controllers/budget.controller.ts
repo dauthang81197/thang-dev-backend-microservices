@@ -15,6 +15,7 @@ export class BudgetController {
   async findByMonth(
     @Payload() data: { userId: string; month: number; year: number },
   ) {
+    console.log()
     return this.budgetService.findByMonthYear(
       data.userId,
       data.month,
