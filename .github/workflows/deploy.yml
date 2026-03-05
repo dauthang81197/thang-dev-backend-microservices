@@ -22,6 +22,7 @@ jobs:
       api-gateway: ${{ steps.changes.outputs.api-gateway }}
       identity: ${{ steps.changes.outputs.identity }}
       flower: ${{ steps.changes.outputs.flower }}
+      notification: ${{ steps.changes.outputs.notification }}
       any-service: ${{ steps.changes.outputs.any-service }}
     steps:
       - name: Checkout code
@@ -38,6 +39,7 @@ jobs:
             echo "api-gateway=true" >> $GITHUB_OUTPUT
             echo "identity=true" >> $GITHUB_OUTPUT
             echo "flower=true" >> $GITHUB_OUTPUT
+            echo "notification=true" >> $GITHUB_OUTPUT
             echo "any-service=true" >> $GITHUB_OUTPUT
             exit 0
           fi
@@ -64,6 +66,7 @@ jobs:
           GW_CHANGED=false
           ID_CHANGED=false
           FL_CHANGED=false
+          NT_CHANGED=false
 
           if [ "$SHARED_CHANGED" = "true" ] || echo "$CHANGED_FILES" | grep -qE "^apps/api-gateway/"; then
             GW_CHANGED=true
@@ -74,22 +77,27 @@ jobs:
           if [ "$SHARED_CHANGED" = "true" ] || echo "$CHANGED_FILES" | grep -qE "^apps/flower/"; then
             FL_CHANGED=true
           fi
+          if [ "$SHARED_CHANGED" = "true" ] || echo "$CHANGED_FILES" | grep -qE "^apps/notification/"; then
+            NT_CHANGED=true
+          fi
 
           ANY_SERVICE=false
-          if [ "$GW_CHANGED" = "true" ] || [ "$ID_CHANGED" = "true" ] || [ "$FL_CHANGED" = "true" ]; then
+          if [ "$GW_CHANGED" = "true" ] || [ "$ID_CHANGED" = "true" ] || [ "$FL_CHANGED" = "true" ] || [ "$NT_CHANGED" = "true" ]; then
             ANY_SERVICE=true
           fi
 
           echo ""
           echo "📊 Build decisions:"
-          echo "  API Gateway: $GW_CHANGED"
-          echo "  Identity:    $ID_CHANGED"
-          echo "  Flower:      $FL_CHANGED"
-          echo "  Any service: $ANY_SERVICE"
+          echo "  API Gateway:   $GW_CHANGED"
+          echo "  Identity:      $ID_CHANGED"
+          echo "  Flower:        $FL_CHANGED"
+          echo "  Notification:  $NT_CHANGED"
+          echo "  Any service:   $ANY_SERVICE"
 
           echo "api-gateway=$GW_CHANGED" >> $GITHUB_OUTPUT
           echo "identity=$ID_CHANGED" >> $GITHUB_OUTPUT
           echo "flower=$FL_CHANGED" >> $GITHUB_OUTPUT
+          echo "notification=$NT_CHANGED" >> $GITHUB_OUTPUT
           echo "any-service=$ANY_SERVICE" >> $GITHUB_OUTPUT
 
   # ======== JOB 2: Lint ========
@@ -127,9 +135,10 @@ jobs:
       - name: Show build plan
         run: |
           echo "🏗️ Build plan:"
-          echo "  API Gateway: ${{ needs.detect-changes.outputs.api-gateway }}"
-          echo "  Identity:    ${{ needs.detect-changes.outputs.identity }}"
-          echo "  Flower:      ${{ needs.detect-changes.outputs.flower }}"
+          echo "  API Gateway:   ${{ needs.detect-changes.outputs.api-gateway }}"
+          echo "  Identity:      ${{ needs.detect-changes.outputs.identity }}"
+          echo "  Flower:        ${{ needs.detect-changes.outputs.flower }}"
+          echo "  Notification:  ${{ needs.detect-changes.outputs.notification }}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -165,6 +174,14 @@ jobs:
           docker save flower-service:latest | gzip > flower-service.tar.gz
           echo "✅ Flower Service image built"
 
+      - name: Build Notification Service Image
+        if: needs.detect-changes.outputs.notification == 'true'
+        run: |
+          echo "🔨 Building Notification Service..."
+          docker build -f apps/notification/Dockerfile -t notification-service:latest .
+          docker save notification-service:latest | gzip > notification-service.tar.gz
+          echo "✅ Notification Service image built"
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -189,9 +206,10 @@ jobs:
       - name: Show deploy plan
         run: |
           echo "🚀 Deploy plan:"
-          echo "  API Gateway: ${{ needs.detect-changes.outputs.api-gateway }}"
-          echo "  Identity:    ${{ needs.detect-changes.outputs.identity }}"
-          echo "  Flower:      ${{ needs.detect-changes.outputs.flower }}"
+          echo "  API Gateway:   ${{ needs.detect-changes.outputs.api-gateway }}"
+          echo "  Identity:      ${{ needs.detect-changes.outputs.identity }}"
+          echo "  Flower:        ${{ needs.detect-changes.outputs.flower }}"
+          echo "  Notification:  ${{ needs.detect-changes.outputs.notification }}"
           echo ""
           echo "📦 Artifacts downloaded:"
           ls -lh *.tar.gz 2>/dev/null || echo "  (no images)"
@@ -244,12 +262,18 @@ jobs:
             $SCP_CMD flower-service.tar.gz $TARGET:~/course-backend/
           fi
 
+          if [ "${{ needs.detect-changes.outputs.notification }}" = "true" ]; then
+            echo "📤 Copying Notification Service image..."
+            $SCP_CMD notification-service.tar.gz $TARGET:~/course-backend/
+          fi
+
       - name: Deploy changed services on VPS
         run: |
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ env.VPS_USER }}@${{ env.VPS_HOST }} \
             CHANGED_GW=${{ needs.detect-changes.outputs.api-gateway }} \
             CHANGED_ID=${{ needs.detect-changes.outputs.identity }} \
             CHANGED_FL=${{ needs.detect-changes.outputs.flower }} \
+            CHANGED_NT=${{ needs.detect-changes.outputs.notification }} \
             bash << 'ENDSSH'
             cd ~/course-backend
 
@@ -259,9 +283,10 @@ jobs:
             fi
 
             echo "🔄 Services to update:"
-            echo "  API Gateway: $CHANGED_GW"
-            echo "  Identity:    $CHANGED_ID"
-            echo "  Flower:      $CHANGED_FL"
+            echo "  API Gateway:   $CHANGED_GW"
+            echo "  Identity:      $CHANGED_ID"
+            echo "  Flower:        $CHANGED_FL"
+            echo "  Notification:  $CHANGED_NT"
             echo ""
 
             # Only stop/reload changed services (other services keep running)
@@ -295,6 +320,16 @@ jobs:
               rm -f flower-service.tar.gz
             fi
 
+            if [ "$CHANGED_NT" = "true" ]; then
+              echo "🛑 Stopping Notification Service..."
+              docker compose -f docker-compose.prod.yml stop notification-service 2>/dev/null || true
+              docker compose -f docker-compose.prod.yml rm -f notification-service 2>/dev/null || true
+              docker rmi notification-service:latest 2>/dev/null || true
+              echo "📦 Loading Notification Service image..."
+              docker load < notification-service.tar.gz
+              rm -f notification-service.tar.gz
+            fi
+
             echo ""
             echo "🚀 Starting services..."
             docker compose -f docker-compose.prod.yml up -d
@@ -316,7 +351,7 @@ jobs:
             sleep 30
 
             CONTAINERS_UP=$(docker compose -f docker-compose.prod.yml ps --filter "status=running" --format json 2>/dev/null | wc -l || echo "0")
-            EXPECTED_CONTAINERS=4
+            EXPECTED_CONTAINERS=5
 
             echo "📊 Container status:"
             docker compose -f docker-compose.prod.yml ps
@@ -337,6 +372,9 @@ jobs:
               echo ""
               echo "=== FLOWER SERVICE LOGS ==="
               docker compose -f docker-compose.prod.yml logs --tail=50 flower-service
+              echo ""
+              echo "=== NOTIFICATION SERVICE LOGS ==="
+              docker compose -f docker-compose.prod.yml logs --tail=50 notification-service
               echo ""
               echo "=== API GATEWAY LOGS ==="
               docker compose -f docker-compose.prod.yml logs --tail=50 api-gateway
@@ -366,6 +404,7 @@ jobs:
           echo "  - apps/api-gateway/**"
           echo "  - apps/identity/**"
           echo "  - apps/flower/**"
+          echo "  - apps/notification/**"
           echo "  - libs/**"
           echo "  - package.json / tsconfig.json / nest-cli.json"
 
