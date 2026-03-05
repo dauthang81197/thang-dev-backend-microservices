@@ -1,0 +1,17 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "declaration": false,
+        "outDir": "../../dist/apps/notification"
+    },
+    "include": [
+        "src/**/*",
+        "../flower/src/shareds/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "test",
+        "**/*spec.ts"
+    ]
+}
