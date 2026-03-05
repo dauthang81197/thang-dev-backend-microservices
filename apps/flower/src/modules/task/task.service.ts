@@ -19,7 +19,7 @@ export class TaskService {
     private readonly taskRepository: Repository<TaskEntity>,
     @InjectRepository(TagEntity)
     private readonly tagRepository: Repository<TagEntity>,
-  ) { }
+  ) {}
 
   async create(userId: string, dto: CreateTaskDto): Promise<TaskEntity> {
     const task = this.taskRepository.create({
@@ -144,21 +144,36 @@ export class TaskService {
     return { message: 'Task deleted successfully' };
   }
 
-  async getTodayTasks(userId: string, date: Date) {
+  async getTodayTasks(userId: string, date: Date | string) {
+    // Client truyền UTC+0 ISO string, parse an toàn bằng UTC methods
     const now = new Date(date);
+
+    // Dùng UTC để tính startOfDay/endOfDay — nhất quán với dueDate lưu UTC trong DB
     const startOfDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        0,
+        0,
+        0,
+        0,
+      ),
     );
     const endOfDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      23,
-      59,
-      59,
-      999,
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        23,
+        59,
+        59,
+        999,
+      ),
+    );
+
+    this.logger.debug(
+      `[getTodayTasks] userId=${userId} date=${now.toISOString()} range=[${startOfDay.toISOString()} → ${endOfDay.toISOString()}]`,
     );
 
     const tasks = await this.taskRepository.find({
@@ -243,20 +258,28 @@ export class TaskService {
       0,
     );
 
-    // Today's tasks count
+    // Today's tasks count — dùng UTC nhất quán với DB
     const startOfDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        0,
+        0,
+        0,
+        0,
+      ),
     );
     const endOfDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      23,
-      59,
-      59,
-      999,
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        23,
+        59,
+        59,
+        999,
+      ),
     );
     const todayTasks = allTasks.filter(
       (t) =>

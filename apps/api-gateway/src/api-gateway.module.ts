@@ -64,7 +64,7 @@ export const CONTROLLER_FLOWER = [
         );
         return {
           secret,
-          signOptions: { expiresIn: '1h' },
+          signOptions: { expiresIn: '30m' },
         };
       },
     }),

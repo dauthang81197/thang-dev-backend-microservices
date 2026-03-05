@@ -106,7 +106,7 @@ export class AuthService {
       );
 
       const accessToken = this.jwtService.sign(payload, {
-        expiresIn: loginDto.rememberMe ? '7d' : '1h',
+        expiresIn: loginDto.rememberMe ? '7d' : '30m',
       });
 
       // Remove password hash from response

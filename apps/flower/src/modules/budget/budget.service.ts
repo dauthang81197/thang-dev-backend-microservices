@@ -21,14 +21,6 @@ export class BudgetService {
   ) {}
 
   async create(userId: string, dto: CreateBudgetDto): Promise<BudgetEntity> {
-    const amount = dto.amount ?? dto.budgetAmount;
-    if (amount === undefined || amount === null) {
-      throw new RpcException({
-        statusCode: 400,
-        message: 'amount or budgetAmount is required',
-      });
-    }
-
     // Check if budget already exists for this user/category/month/year
     const existing = await this.budgetRepository.findOne({
       where: {
@@ -49,7 +41,7 @@ export class BudgetService {
     const budget = this.budgetRepository.create({
       userId,
       categoryId: dto.categoryId,
-      amount,
+      amount: dto.amount,
       month: dto.month,
       year: dto.year,
     });
