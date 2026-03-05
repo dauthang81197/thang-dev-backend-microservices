@@ -29,7 +29,7 @@ import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class TaskGatewayController {
-  constructor(@Inject('FLOWER_SERVICE') private flowerClient: ClientProxy) { }
+  constructor(@Inject('FLOWER_SERVICE') private flowerClient: ClientProxy) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -85,14 +85,25 @@ export class TaskGatewayController {
 
   @Get('today')
   @ApiOperation({ summary: "Get today's tasks with stats" })
+  @ApiQuery({
+    name: 'date',
+    required: false,
+    description:
+      'Date in ISO 8601 UTC format (e.g. 2026-03-05T00:00:00.000Z). Defaults to now.',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: "Today's tasks with completion stats",
   })
   async getTodayTasks(@Request() req: any) {
+    // Truyền ISO string (UTC+0) qua Redis, tránh Date object bị mất timezone khi serialize
+    const dateIso = req.query.date
+      ? new Date(req.query.date).toISOString()
+      : new Date().toISOString();
+
     return this.flowerClient.send('flower.tasks.today', {
       userId: req.user.id,
-      date: req.query.date ? new Date(req.query.date) : new Date(),
+      date: dateIso,
     });
   }
 

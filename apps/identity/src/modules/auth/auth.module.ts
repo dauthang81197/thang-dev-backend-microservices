@@ -23,7 +23,7 @@ import { OrganizationModule } from '../organization/organization.module';
         );
         return {
           secret,
-          signOptions: { expiresIn: '1h' },
+          signOptions: { expiresIn: '30m' },
         };
       },
     }),

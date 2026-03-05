@@ -23,12 +23,20 @@ import { ApiGatewayModule } from './api-gateway.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { LoggingInterceptor } from '@app/common';
 import { ENVIRONMENT } from '../env/environment';
+import { RpcExceptionFilter } from './filters/rpc-exception.filter';
+import { RpcToHttpExceptionInterceptor } from './interceptors/rpc-to-http-exception.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(ApiGatewayModule);
 
-  // Global Logging Interceptor
-  app.useGlobalInterceptors(new LoggingInterceptor());
+  // Global RPC Exception Filter - bắt RpcException throw trực tiếp
+  app.useGlobalFilters(new RpcExceptionFilter());
+
+  // Global Interceptor - bắt lỗi RPC từ Observable trả về bởi controller
+  app.useGlobalInterceptors(
+    new RpcToHttpExceptionInterceptor(),
+    new LoggingInterceptor(),
+  );
 
   // CORS Configuration
   const corsOrigin = process.env.CORS_ORIGIN || '*';

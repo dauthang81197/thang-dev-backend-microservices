@@ -4,7 +4,7 @@ import { TaskService } from '../task.service';
 
 @Controller()
 export class TaskController {
-  constructor(private readonly taskService: TaskService) { }
+  constructor(private readonly taskService: TaskService) {}
 
   @MessagePattern('flower.tasks.create')
   async create(@Payload() data: { userId: string; dto: any }) {
@@ -32,7 +32,7 @@ export class TaskController {
   }
 
   @MessagePattern('flower.tasks.today')
-  async getTodayTasks(@Payload() data: { userId: string, date: Date }) {
+  async getTodayTasks(@Payload() data: { userId: string; date: Date }) {
     return this.taskService.getTodayTasks(data.userId, data.date);
   }
 
