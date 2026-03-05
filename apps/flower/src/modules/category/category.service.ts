@@ -70,6 +70,22 @@ export class CategoryService {
 
   async delete(id: string, userId: string): Promise<{ message: string }> {
     const category = await this.findOneByUser(id, userId);
+
+    const transactionCount = await this.categoryRepository
+      .createQueryBuilder('category')
+      .leftJoin('category.transactions', 'transaction')
+      .where('category.id = :id', { id })
+      .select('COUNT(transaction.id)', 'count')
+      .getRawOne();
+
+    if (parseInt(transactionCount?.count ?? '0', 10) > 0) {
+      throw new RpcException({
+        statusCode: 400,
+        message:
+          'Cannot delete category because it has associated transactions',
+      });
+    }
+
     await this.categoryRepository.remove(category);
     return { message: 'Category deleted successfully' };
   }
