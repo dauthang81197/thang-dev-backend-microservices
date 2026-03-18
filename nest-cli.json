@@ -62,6 +62,15 @@
         "tsConfigPath": "apps/flower/tsconfig.app.json"
       }
     },
+    "ai-craw": {
+      "type": "application",
+      "root": "apps/ai-craw",
+      "entryFile": "main",
+      "sourceRoot": "apps/ai-craw/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/ai-craw/tsconfig.app.json"
+      }
+    },
     "notification": {
       "type": "application",
       "root": "apps/notification",
